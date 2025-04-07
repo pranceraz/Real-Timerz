@@ -87,4 +87,4 @@ Try ->
     reset the config files through the IDF wizard the same way you did when you setup ESP32 for vsCode in the beginning
 
 I reccomend doing both and using the second method as a fallback 
-running in containers is great and is a secure way whil eensuring crossplatform compatability 
+running in containers is great and is a secure way while ensuring crossplatform compatability 
