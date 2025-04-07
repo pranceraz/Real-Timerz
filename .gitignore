@@ -10,3 +10,14 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
+.vscode
+build
+sdkconfig
+sdkconfig.old
+__pycache__/
+pytest_cache/
+.DS_Store 
+build_summary_*.xml
+app_info_*.txt
+size_info_*.txt
+pytest_embedded_log/
