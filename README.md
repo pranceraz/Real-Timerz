@@ -54,13 +54,25 @@ We will get back to you as soon as possible.
 --------------------------------------------------
 MINE-
 git config --global core.autocrlf false
-type this in before committing and pushing 
+type this in before committing and pushing // hold on this for now unless you see many errors 
+on the building of compile commands.json is missing (its fine to press the button jsut make sure nothing gets committed / pushed to git (add the file name to gitignore if its getting tedious))
 ---------------------------
-git tutorial -
-git fetch  once before working
+git tutorial Arnav -
+git fetch  once before working(you need to be connected to see latest changes )
 git merge to add changes 
+(git pull does a git fetch + git merge but is less safe)
 git add to add files to be commited
 git commit to confirm changes 
+    -after a git commit youll enter a VIM environment there you want to press "I"
+        this will put you in Insert mode and you can start entering you commit message
+    - press esc and the type in ":wq"
+        the : is command mode w is write and q means quit 
+    - youre now ready to push
+    - alt method is to git commit -m "commit message"
+always git fetch before pushing ideally do it  when you start working  and then do a git merge (as long as you have no changes of your own)
+do another git status and if it says youre 1 commit ahead locally and one commit behind from the main then do a git rebase 
+    this will put you on top of the latest commit  
+
 git push to push changes online
 git status to chack whats going on
 --------------------------------------
