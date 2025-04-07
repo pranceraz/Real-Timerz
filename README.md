@@ -62,4 +62,17 @@ git merge to add changes
 git add to add files to be commited
 git commit to confirm changes 
 git push to push changes online
-git status to chack whats going on 
+git status to chack whats going on
+--------------------------------------
+Set up tips-> Arnav 
+if youre unable to build out of the gate 
+Try ->
+1)opening it in the contatiner (the option shows as soon as you select the folder in VSCode)
+    this should solve all issues and you should be able to build and run within the docker container 
+    im not sure if you can still gti commit/push  from the container but try it out otherwise jsut open the folder int the terminal and you should be able to push from there as the changes are synchronised through SSH (as far as I know)
+2)Resetting the ESP-IDF build settings 
+    make sure to never push any extra config / build files 
+    reset the config files through the IDF wizard the same way you did when you setup ESP32 for vsCode in the beginning
+
+I reccomend doing both and using the second method as a fallback 
+running in containers is great and is a secure way whil eensuring crossplatform compatability 

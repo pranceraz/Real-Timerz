@@ -12,6 +12,7 @@ _deps
 CMakeUserPresets.json
 .vscode
 build
+sdkconfig.ci
 sdkconfig
 sdkconfig.old
 __pycache__/
