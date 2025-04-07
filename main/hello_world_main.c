@@ -12,7 +12,7 @@
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_system.h"
-
+// hi there
 void app_main(void)
 {
     printf("Hello world!\n");
