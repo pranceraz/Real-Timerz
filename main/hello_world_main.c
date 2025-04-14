@@ -12,12 +12,29 @@
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_system.h"
-// hi there
+
+#include "timer_task.h"
+#include "esp_log.h"
+//definitions
+#define MAIN_DELAY_MS 5000
+
+//variables
+static const char *TAG_MAIN =  "Main";
+
+
 void app_main(void)
 {
     printf("Hello world!\n");
+    ESP_LOGI(TAG_MAIN,"About to Setup the Task");
+    setup_the_task();
+    ESP_LOGI(TAG_MAIN,"task setup starting the main loop");
+    for(;;){
+        ESP_LOGI(TAG_MAIN,"Going to snooze for a bit");
+        vTaskDelay(MAIN_DELAY_MS / portTICK_PERIOD_MS);
 
-    /* Print chip information */
+    }
+    /*
+    Print chip information 
     esp_chip_info_t chip_info;
     uint32_t flash_size;
     esp_chip_info(&chip_info);
@@ -48,5 +65,5 @@ void app_main(void)
     }
     printf("Restarting now.\n");
     fflush(stdout);
-    esp_restart();
+    esp_restart();*/
 }
