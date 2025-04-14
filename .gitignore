@@ -10,3 +10,9 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
+build/
+dependencies.lock
+main/idf_component.yml
+managed_components/
+sdkconfig
+sdkconfig.old
