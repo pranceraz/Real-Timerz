@@ -1,69 +1,118 @@
-/*
- * SPDX-FileCopyrightText: 2010-2022 Espressif Systems (Shanghai) CO LTD
- *
- * SPDX-License-Identifier: CC0-1.0
- */
-
-#include <stdio.h>
-#include <inttypes.h>
-#include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_chip_info.h"
-#include "esp_flash.h"
-#include "esp_system.h"
-
-#include "timer_task.h"
+#include "freertos/queue.h"
+#include "driver/adc.h"
+#include "driver/gpio.h"
 #include "esp_log.h"
-//definitions
-#define MAIN_DELAY_MS 5000
+#include <stdio.h>
 
-//variables
-static const char *TAG_MAIN =  "Main";
+// Configuration Constants
+#define FPS1_CHANNEL ADC2_CHANNEL_5   // GPIO12 (bit 3)
+#define FPS2_CHANNEL ADC1_CHANNEL_5   // GPIO33 (bit 2)
+#define FPS3_CHANNEL ADC2_CHANNEL_3   // GPIO15 (bit 1)
+#define FPS4_CHANNEL ADC2_CHANNEL_6   // GPIO14 (bit 0) 
 
+#define LED_PIN GPIO_NUM_13
+#define PRESSURE_THRESHOLD 100
+#define POLLING_DELAY_MS 50
 
-void app_main(void)
-{
-    printf("Hello world!\n");
-    ESP_LOGI(TAG_MAIN,"About to Setup the Task");
-    setup_the_task();
-    ESP_LOGI(TAG_MAIN,"task setup starting the main loop");
-    for(;;){
-        ESP_LOGI(TAG_MAIN,"Going to snooze for a bit");
-        vTaskDelay(MAIN_DELAY_MS / portTICK_PERIOD_MS);
+QueueHandle_t sensor_data_queue = NULL;
+static const char* TAG = "FPS_MONITOR";
 
+typedef struct {
+    uint8_t state;
+} sensor_data_t;
+
+// Helper function to read ADC2
+int read_adc2(adc2_channel_t channel) {
+    int raw = 0;
+    esp_err_t ret = adc2_get_raw(channel, ADC_WIDTH_BIT_12, &raw);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to read ADC2 channel %d: %s", channel, esp_err_to_name(ret));
+        return -1;
     }
-    /*
-    Print chip information 
-    esp_chip_info_t chip_info;
-    uint32_t flash_size;
-    esp_chip_info(&chip_info);
-    printf("This is %s chip with %d CPU core(s), %s%s%s%s, ",
-           CONFIG_IDF_TARGET,
-           chip_info.cores,
-           (chip_info.features & CHIP_FEATURE_WIFI_BGN) ? "WiFi/" : "",
-           (chip_info.features & CHIP_FEATURE_BT) ? "BT" : "",
-           (chip_info.features & CHIP_FEATURE_BLE) ? "BLE" : "",
-           (chip_info.features & CHIP_FEATURE_IEEE802154) ? ", 802.15.4 (Zigbee/Thread)" : "");
+    return raw;
+}
 
-    unsigned major_rev = chip_info.revision / 100;
-    unsigned minor_rev = chip_info.revision % 100;
-    printf("silicon revision v%d.%d, ", major_rev, minor_rev);
-    if(esp_flash_get_size(NULL, &flash_size) != ESP_OK) {
-        printf("Get flash size failed");
+void configure_hardware() {
+    // Configure LED pin
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << LED_PIN),
+        .mode = GPIO_MODE_OUTPUT,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type = GPIO_INTR_DISABLE
+    };
+    ESP_ERROR_CHECK(gpio_config(&io_conf));
+    gpio_set_level(LED_PIN, 0);
+
+    // Configure ADCs
+    ESP_ERROR_CHECK(adc1_config_width(ADC_WIDTH_BIT_12));
+    ESP_ERROR_CHECK(adc1_config_channel_atten(FPS2_CHANNEL, ADC_ATTEN_DB_11));
+    ESP_ERROR_CHECK(adc2_config_channel_atten(FPS1_CHANNEL, ADC_ATTEN_DB_11));
+    ESP_ERROR_CHECK(adc2_config_channel_atten(FPS3_CHANNEL, ADC_ATTEN_DB_11));
+    ESP_ERROR_CHECK(adc2_config_channel_atten(FPS4_CHANNEL, ADC_ATTEN_DB_11));
+}
+
+void sensor_reading_task(void *pvParameters) {
+    sensor_data_t sensor_data;
+    
+    while (1) {
+        // Read sensors and build state byte (MSB first: GPIO12=bit3, GPIO14=bit0)
+        sensor_data.state = 0;
+        sensor_data.state |= (read_adc2(FPS1_CHANNEL) > PRESSURE_THRESHOLD) << 3;
+        sensor_data.state |= (adc1_get_raw(FPS2_CHANNEL) > PRESSURE_THRESHOLD) << 2;
+        sensor_data.state |= (read_adc2(FPS3_CHANNEL) > PRESSURE_THRESHOLD) << 1;
+        sensor_data.state |= (read_adc2(FPS4_CHANNEL) > PRESSURE_THRESHOLD) << 0;
+        
+        if (xQueueSend(sensor_data_queue, &sensor_data, portMAX_DELAY) != pdPASS) {
+            ESP_LOGE(TAG, "Queue send failed");
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(POLLING_DELAY_MS));
+    }
+}
+
+void display_task(void *pvParameters) {
+    sensor_data_t sensor_data;
+    static uint8_t prev_state = 0;
+    char state_str[10]; // Enough for "[0 0 0 0]"
+    
+    while (1) {
+        if (xQueueReceive(sensor_data_queue, &sensor_data, portMAX_DELAY) == pdPASS) {
+            // Update LED
+            gpio_set_level(LED_PIN, sensor_data.state ? 1 : 0);
+            
+            // Only print on state change
+            if (sensor_data.state != prev_state) {
+                if (sensor_data.state != 0) {
+                    // Format as [0 1 0 1] style output
+                    snprintf(state_str, sizeof(state_str), 
+                            "[%d %d %d %d]", 
+                            (sensor_data.state >> 3) & 1,
+                            (sensor_data.state >> 2) & 1,
+                            (sensor_data.state >> 1) & 1,
+                            sensor_data.state & 1);
+                    ESP_LOGI(TAG, "Pressed: %s", state_str);
+                }
+                prev_state = sensor_data.state;
+            }
+        }
+    }
+}
+
+void app_main() {
+    configure_hardware();
+    
+    sensor_data_queue = xQueueCreate(5, sizeof(sensor_data_t));
+    if (!sensor_data_queue) {
+        ESP_LOGE(TAG, "Queue creation failed");
         return;
     }
 
-    printf("%" PRIu32 "MB %s flash\n", flash_size / (uint32_t)(1024 * 1024),
-           (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
-
-    printf("Minimum free heap size: %" PRIu32 " bytes\n", esp_get_minimum_free_heap_size());
-
-    for (int i = 10; i >= 0; i--) {
-        printf("Restarting in %d seconds...\n", i);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-    printf("Restarting now.\n");
-    fflush(stdout);
-    esp_restart();*/
+    xTaskCreate(sensor_reading_task, "Sensor Task", 4096, NULL, 3, NULL);
+    xTaskCreate(display_task, "Display Task", 4096, NULL, 1, NULL);
+    
+    vTaskDelete(NULL);
 }
+
