@@ -84,7 +84,7 @@ static void espnow_echo_task(void *pvParameter) {
                 example_espnow_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
                 ESP_LOGI(TAG, "Received %d bytes from "MACSTR, recv_cb->data_len, MAC2STR(recv_cb->mac_addr));
                 // Optionally log data
-                //for (int i = 0; i < recv_cb->data_len; i++) ESP_LOGI(TAG, "Byte %d: %02X", i, recv_cb->data[i]);
+                for (int i = 0; i < recv_cb->data_len; i++) ESP_LOGI(TAG, "Byte %d: %02X", i, recv_cb->data[i]);
 
                 // Send back an "echo" (single byte = 1) to sender
                 uint8_t echo_data = ECHO_BYTE;
