@@ -1,14 +1,10 @@
-/* ESPNOW Example
-
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
-
 #ifndef ESPNOW_EXAMPLE_H
 #define ESPNOW_EXAMPLE_H
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include "esp_now.h"
 
 /* ESPNOW can work in both station and softap mode. It is configured in menuconfig. */
 #if CONFIG_ESPNOW_WIFI_MODE_STATION
@@ -21,6 +17,7 @@
 
 #define ESPNOW_QUEUE_SIZE           6
 
+// Broadcast address check macro
 #define IS_BROADCAST_ADDR(addr) (memcmp(addr, s_example_broadcast_mac, ESP_NOW_ETH_ALEN) == 0)
 
 typedef enum {
@@ -58,25 +55,45 @@ enum {
 
 /* User defined field of ESPNOW data in this example. */
 typedef struct {
-    uint8_t type;                         //Broadcast or unicast ESPNOW data.
-    uint8_t state;                        //Indicate that if has received broadcast ESPNOW data or not.
-    uint16_t seq_num;                     //Sequence number of ESPNOW data.
-    uint16_t crc;                         //CRC16 value of ESPNOW data.
-    uint32_t magic;                       //Magic number which is used to determine which device to send unicast ESPNOW data.
-    uint8_t payload[0];                   //Real payload of ESPNOW data.
+    uint8_t type;                         // Broadcast or unicast ESPNOW data.
+    uint8_t state;                        // Indicate that if has received broadcast ESPNOW data or not.
+    uint16_t seq_num;                     // Sequence number of ESPNOW data.
+    uint16_t crc;                         // CRC16 value of ESPNOW data.
+    uint32_t magic;                       // Magic number which is used to determine which device to send unicast ESPNOW data.
+    uint8_t sensor_data[4];               // <-- Sensor data field added
+    uint8_t payload[0];                   // Real payload of ESPNOW data.
 } __attribute__((packed)) example_espnow_data_t;
 
 /* Parameters of sending ESPNOW data. */
 typedef struct {
-    bool unicast;                         //Send unicast ESPNOW data.
-    bool broadcast;                       //Send broadcast ESPNOW data.
-    uint8_t state;                        //Indicate that if has received broadcast ESPNOW data or not.
-    uint32_t magic;                       //Magic number which is used to determine which device to send unicast ESPNOW data.
-    uint16_t count;                       //Total count of unicast ESPNOW data to be sent.
-    uint16_t delay;                       //Delay between sending two ESPNOW data, unit: ms.
-    int len;                              //Length of ESPNOW data to be sent, unit: byte.
-    uint8_t *buffer;                      //Buffer pointing to ESPNOW data.
-    uint8_t dest_mac[ESP_NOW_ETH_ALEN];   //MAC address of destination device.
+    bool unicast;                         // Send unicast ESPNOW data.
+    bool broadcast;                       // Send broadcast ESPNOW data.
+    uint8_t state;                        // Indicate that if has received broadcast ESPNOW data or not.
+    uint32_t magic;                       // Magic number which is used to determine which device to send unicast ESPNOW data.
+    uint16_t count;                       // Total count of unicast ESPNOW data to be sent.
+    uint16_t delay;                       // Delay between sending two ESPNOW data, unit: ms.
+    int len;                              // Length of ESPNOW data to be sent, unit: byte.
+    uint8_t *buffer;                      // Buffer pointing to ESPNOW data.
+    uint8_t dest_mac[ESP_NOW_ETH_ALEN];   // MAC address of destination device.
 } example_espnow_send_param_t;
 
-#endif
+#endif // ESPNOW_EXAMPLE_H
+#ifndef ESPNOW_EXAMPLE_H
+#define ESPNOW_EXAMPLE_H
+
+#include <stdint.h>
+
+#define EXAMPLE_ESPNOW_DATA_MAX 16
+#define EXAMPLE_ESPNOW_DATA_BROADCAST 0
+#define EXAMPLE_ESPNOW_DATA_UNICAST 1
+
+typedef struct {
+    uint8_t type;
+    uint8_t state;
+    uint16_t seq_num;
+    uint32_t magic;
+    uint16_t crc;
+    uint8_t sensor_data[4]; // Array to hold sensor data
+} example_espnow_data_t;
+
+#endif // ESPNOW_EXAMPLE_H
