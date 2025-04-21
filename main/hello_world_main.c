@@ -15,6 +15,7 @@
 
 #include "timer_task.h"
 #include "esp_log.h"
+#include "uart_echo.c"
 //definitions
 #define MAIN_DELAY_MS 5000
 
@@ -26,13 +27,20 @@ void app_main(void)
 {
     printf("Hello world!\n");
     ESP_LOGI(TAG_MAIN,"About to Setup the Task");
-    setup_the_task();
+    setup_the_timertask();
     ESP_LOGI(TAG_MAIN,"task setup starting the main loop");
     for(;;){
         ESP_LOGI(TAG_MAIN,"Going to snooze for a bit");
         vTaskDelay(MAIN_DELAY_MS / portTICK_PERIOD_MS);
 
     }
+    gpio_reset_pin(13);
+    /* Set the GPIO as a push/pull output */
+    gpio_set_direction(13, GPIO_MODE_OUTPUT);
+    blink_led();
+    xTaskCreate(echo_task, "uart_echo_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
+    xTaskCreate(blink_task, "blink_LED", 1024, NULL, 5, &myTaskHandle);
+    vTaskSuspend(myTaskHandle);
     /*
     Print chip information 
     esp_chip_info_t chip_info;

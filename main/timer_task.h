@@ -10,7 +10,7 @@
 //declarations
 //public
 
-void setup_the_task(void);
+void setup_the_timertask(void);
 
 
 //private
@@ -18,7 +18,7 @@ static const char *TAG_TASK = "Task";
 static void the_actual_task(void);
 
 //function definitions
-void setup_the_task(void){
+void setup_the_timertask(void){
     ESP_LOGI(TAG_TASK,"setting up the task");
 }
 static void the_actual_task(void){
