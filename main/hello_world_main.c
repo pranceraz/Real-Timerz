@@ -12,35 +12,42 @@
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_system.h"
-
-#include "timer_task.h"
+#include <pthread.h>
 #include "esp_log.h"
-#include "uart_echo.c"
+
+#include "metronome.h"
 //definitions
 #define MAIN_DELAY_MS 5000
 
 //variables
 static const char *TAG_MAIN =  "Main";
+pthread_t worker_tid;
+pthread_t manager_tid;
 
+void start_game(int bpm);
 
 void app_main(void)
 {
-    printf("Hello world!\n");
-    ESP_LOGI(TAG_MAIN,"About to Setup the Task");
-    setup_the_timertask();
-    ESP_LOGI(TAG_MAIN,"task setup starting the main loop");
-    for(;;){
-        ESP_LOGI(TAG_MAIN,"Going to snooze for a bit");
-        vTaskDelay(MAIN_DELAY_MS / portTICK_PERIOD_MS);
 
-    }
-    gpio_reset_pin(13);
-    /* Set the GPIO as a push/pull output */
-    gpio_set_direction(13, GPIO_MODE_OUTPUT);
-    blink_led();
-    xTaskCreate(echo_task, "uart_echo_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
-    xTaskCreate(blink_task, "blink_LED", 1024, NULL, 5, &myTaskHandle);
-    vTaskSuspend(myTaskHandle);
+    start_game(1000000);
+    
+    
+    // printf("Hello world!\n");
+    // ESP_LOGI(TAG_MAIN,"About to Setup the Task");
+    // setup_the_timertask();
+    // ESP_LOGI(TAG_MAIN,"task setup starting the main loop");
+    // for(;;){
+    //     ESP_LOGI(TAG_MAIN,"Going to snooze for a bit");
+    //     vTaskDelay(MAIN_DELAY_MS / portTICK_PERIOD_MS);
+
+    // }
+    // gpio_reset_pin(13);
+    // /* Set the GPIO as a push/pull output */
+    // gpio_set_direction(13, GPIO_MODE_OUTPUT);
+    // blink_led();
+    // xTaskCreate(echo_task, "uart_echo_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
+    // xTaskCreate(blink_task, "blink_LED", 1024, NULL, 5, &myTaskHandle);
+    // vTaskSuspend(myTaskHandle);
     /*
     Print chip information 
     esp_chip_info_t chip_info;
@@ -74,4 +81,19 @@ void app_main(void)
     printf("Restarting now.\n");
     fflush(stdout);
     esp_restart();*/
+}
+
+
+void start_game(int bpm) {
+    MetronomeArgs m_args;
+    m_args.bpm = bpm;
+    m_args.metronome = create_metronome();
+
+    pthread_create(&worker_tid, NULL, metronome_worker, (void*)&m_args);
+    pthread_create(&manager_tid, NULL, manager_thread, NULL);
+
+    pthread_join(manager_tid, NULL);
+    pthread_join(worker_tid, NULL);
+
+    ESP_LOGI("App", "All threads finished.");
 }
