@@ -1,3 +1,4 @@
+#CMake things
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -10,6 +11,8 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
+
+#HEAD main things
 .vscode
 build
 sdkconfig.ci
@@ -22,3 +25,13 @@ build_summary_*.xml
 app_info_*.txt
 size_info_*.txt
 pytest_embedded_log/
+
+#hand_esp
+build/
+dependencies.lock
+main/idf_component.yml
+managed_components/
+.vscode/.
+.vscode/c_cpp_properties.json
+.vscode/settings.json
+
