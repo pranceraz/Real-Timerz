@@ -130,6 +130,13 @@ void app_main(void) {
     example_wifi_init();
     example_espnow_init();
 
+    //Initializing Blink stuf
+
+    gpio_reset_pin(13);
+    // Set the GPIO as a push/pull output 
+    gpio_set_direction(13, GPIO_MODE_OUTPUT);
+    blink_led();
+
     recv_queue = xQueueCreate(ESPNOW_QUEUE_SIZE, sizeof(example_espnow_event_t));
     assert(recv_queue);
     uint8_t state = 0b1000;
