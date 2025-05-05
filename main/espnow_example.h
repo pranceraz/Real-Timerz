@@ -4,8 +4,23 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+#include "nvs_flash.h"
+#include "esp_random.h"
+#include "esp_event.h"
+#include "esp_netif.h"
+#include "esp_wifi.h"
+#include "esp_log.h"
+#include "esp_mac.h"
 #include "esp_now.h"
-
+#include "esp_crc.h"
+#include "driver/adc.h"
+#include "driver/gpio.h"
 /* ESPNOW can work in both station and softap mode. It is configured in menuconfig. */
 #if CONFIG_ESPNOW_WIFI_MODE_STATION
 #define ESPNOW_WIFI_MODE WIFI_MODE_STA

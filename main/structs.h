@@ -1,6 +1,14 @@
 #pragma once
 #include "stdint.h"
 #include <stdlib.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+typedef struct 
+{
+    uint32_t bpm;
+    TaskHandle_t receiverTaskHandle;
+}Metronome_params_t;
 
 struct beat
 {

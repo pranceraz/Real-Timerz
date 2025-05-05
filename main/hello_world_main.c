@@ -12,26 +12,33 @@
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_system.h"
-#include "input_handler.h"
-#include "timer_task.h"
-#include "metronome.h"
 #include "esp_log.h"
+#include "espnow_example.h"
+#include "espnow_example.c"
+#include "metronome.h"
+#include "structs.h"
+#include "input_handler.h"
+//#include "Inc/espnow_example.h"
+
 //definitions
-#define MAIN_DELAY_MS 5000
 
 //variables
 static const char *TAG_MAIN =  "Main";
 
+
+//functions
 void Sys_init(void){
    // Initialize hardware
     configure_hardware(); //pressure sensor
+    ESP_ERROR_CHECK(nvs_flash_init());
+    example_wifi_init();
+    example_espnow_init();
 }
 
 void app_main(void)
 {       
 
             // --- Basic System Information ---
-        // (Optional: Good practice to log chip info on startup)
         esp_chip_info_t chip_info;
         esp_chip_info(&chip_info);
         ESP_LOGI(TAG_MAIN, "This is %s chip with %d CPU core(s), WiFi%s%s, ",
@@ -54,8 +61,15 @@ void app_main(void)
 
 
         // Initialize hardware
-        configure_hardware();
-    
+        //configure_hardware();
+        //ESP_ERROR_CHECK(nvs_flash_init());
+        //example_wifi_init();
+       // example_espnow_init();
+        Sys_init();
+        TaskHandle_t espnow_handle = NULL;
+
+        //order MATTERS
+        xTaskCreate(espnow_send_task, "espnow_send_task", 2048, NULL, 5, &espnow_handle);
         // Create the pressure sensor task
         xTaskCreate(
             pressure_sensor_task,    // Function that implements the task
@@ -66,15 +80,23 @@ void app_main(void)
             NULL                     // Task handle
         );
         
-        uint32_t desired_bpm_for_metronome = 90;
+        //uint32_t desired_bpm_for_metronome = 90;
+        static Metronome_params_t Metronome_params;
+        Metronome_params.bpm = 90;
+        Metronome_params.receiverTaskHandle  = espnow_handle;
         xTaskCreate(
             metronome_task,          // Function that implements the task
             "metronome_task",        // Text name for the task
             2048,                    // Stack size in words
-            (void*)desired_bpm_for_metronome,                    // Parameter passed into the task
+            (void*)&Metronome_params,                    // Parameter passed into the task
             5,                       // Priority (same as pressure sensor for now)
             NULL                     // Task handle
         );
 
         // The scheduler will start automatically
+    //    fps_queue = xQueueCreate(5, sizeof(uint8_t));
+    //  assert(fps_queue);
+       
+
+        
 }
