@@ -13,6 +13,7 @@
 #include "esp_crc.h"
 #include "espnow_example.h"
 #include "esp_mac.h"
+#include "labview_output.h"
 
 #define ESPNOW_QUEUE_SIZE 6
 #define ECHO_BYTE 1
@@ -83,6 +84,11 @@ static void espnow_echo_task(void *pvParameter) {
             if (evt.id == EXAMPLE_ESPNOW_RECV_CB) {
                 example_espnow_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
                 ESP_LOGI(TAG, "Received %d bytes from "MACSTR, recv_cb->data_len, MAC2STR(recv_cb->mac_addr));
+                //Play beat every time new message
+                if (recv_cb->data[0] == 0b1000) {  // Or 8
+                    const char *signal = "SOUND\n";  // LabVIEW listens for this string
+                    uart_write_bytes(UART_NUM_1, signal, strlen(signal));
+                }
                 // Optionally log data
                 for (int i = 0; i < recv_cb->data_len; i++) ESP_LOGI(TAG, "Byte %d: %02X", i, recv_cb->data[i]);
 
@@ -128,5 +134,8 @@ void app_main(void) {
     assert(recv_queue);
     uint8_t state = 0b1000;
     log_4bitbinary_state(state);
+    xTaskCreate(echo_task, "uart_echo_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
+    xTaskCreate(blink_task, "blink_LED", 1024, NULL, 5, &myTaskHandle);
     xTaskCreate(espnow_echo_task, "espnow_echo_task", 2048, NULL, 5, NULL);
+    vTaskSuspend(myTaskHandle);
 }
