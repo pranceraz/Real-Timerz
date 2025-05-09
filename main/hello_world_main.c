@@ -19,6 +19,7 @@
 #include "structs.h"
 #include "input_handler.h"
 #include "checker.h"
+#include "songs.h"
 //#include "Inc/espnow_example.h"
 
 //definitions
@@ -26,6 +27,7 @@
 //variables
 static const char *TAG_MAIN =  "Main";
 
+static songs_t current_song;
 
 //functions
 void Sys_init(void){
@@ -84,7 +86,7 @@ void app_main(void)
         
         //uint32_t desired_bpm_for_metronome = 90;
         static Metronome_params_t Metronome_params;
-        Metronome_params.bpm = 90;
+        Metronome_params.bpm = current_song.bpm;
         Metronome_params.receiverTaskHandle  = espnow_handle;
         static Checker_params_t Checker_params;
         Checker_params.receiverTaskHandle = espnow_handle;
