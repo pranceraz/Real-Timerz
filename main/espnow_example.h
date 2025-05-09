@@ -24,7 +24,6 @@
 #include "esp_crc.h"
 #include "driver/adc.h"
 #include "driver/gpio.h"
-#include "espnow_example.h"
 
 #ifndef ESPNOW_EXAMPLE_H
 #define ESPNOW_EXAMPLE_H

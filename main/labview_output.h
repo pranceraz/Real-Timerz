@@ -69,7 +69,7 @@ static void echo_task(void *arg)
     // Configure a temporary buffer for the incoming data
     uint8_t *data = (uint8_t *) malloc(BUF_SIZE);
 
-//    uart_write_bytes(ECHO_UART_PORT_NUM, "Commands", strlen("Commands"));
+   uart_write_bytes(ECHO_UART_PORT_NUM, "Commands", strlen("Commands"));
     while (1)
     {
         // Read data from the UART
@@ -81,11 +81,11 @@ static void echo_task(void *arg)
             data[len] = '\0';
             switch(data[0])
             {
-                case 'tequila_easy':
+                case 'A':
                     s_led_state = 1;
                     xQueueSend(song_queue, &s_led_state, 0);
                     break;
-                case 'tequila_normal':
+                case 'B':
                     s_led_state = 2;
                     xQueueSend(song_queue, &s_led_state, 0);
                     break;
