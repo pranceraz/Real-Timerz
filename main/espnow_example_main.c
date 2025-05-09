@@ -153,11 +153,11 @@ void app_main(void) {
     example_wifi_init();
     example_espnow_init();
 
-    // song_queue = xQueueCreate(5, sizeof(uint8_t));
-    // assert(song_queue);
+    song_queue = xQueueCreate(5, sizeof(uint8_t));
+    assert(song_queue);
 
-    // recv_queue = xQueueCreate(ESPNOW_QUEUE_SIZE, sizeof(example_espnow_event_t));
-    // assert(recv_queue);
+    recv_queue = xQueueCreate(ESPNOW_QUEUE_SIZE, sizeof(example_espnow_event_t));
+    assert(recv_queue);
     
     xTaskCreate(echo_task, "uart_echo_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
     xTaskCreate(espnow_echo_task, "espnow_echo_task", 2048, NULL, 5, NULL);

@@ -36,6 +36,8 @@
 #define ECHO_UART_BAUD_RATE     (CONFIG_EXAMPLE_UART_BAUD_RATE)
 #define ECHO_TASK_STACK_SIZE    (CONFIG_EXAMPLE_TASK_STACK_SIZE)
 
+static uint8_t s_led_state = 1;
+
 //FreeRtos i think???
 TaskHandle_t myTaskHandle = NULL;
 
@@ -80,12 +82,11 @@ static void echo_task(void *arg)
             {
                 case 'tequila_easy':
                     s_led_state = 1;
-                    blink_led();
-                    uart_write_bytes(ECHO_UART_PORT_NUM, "ESP32", strlen("ESP32"));
+                    xQueueSend(song_queue, &s_led_state, 0);
                     break;
                 case 'tequila_normal':
-                    flash_period -= flash_period_dec;
-                    if(flash_period <= flash_period_dec) flash_period = flash_period_dec;
+                s_led_state = 2;
+                xQueueSend(song_queue, &s_led_state, 0);
                     break;
             }
         }
