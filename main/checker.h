@@ -4,6 +4,7 @@
 #include "freertos/queue.h"
 #include "stdint.h"
 #include "structs.h"
+#include "songs.h"
 static const char *TAG_INPUT = "input_check";
 
 static QueueHandle_t input_q = NULL;

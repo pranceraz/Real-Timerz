@@ -1,5 +1,4 @@
 #include "metronome.h"
-#include "structs.h"
 // --- Metronome Logic ---
 void metronome_task(void *pvParameter) {
 

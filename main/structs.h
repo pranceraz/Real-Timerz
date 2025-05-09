@@ -1,26 +1,11 @@
+/*structs.h*/
+
 #pragma once
 #include "stdint.h"
 #include <stdlib.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
-typedef struct 
-{
-    uint32_t bpm;
-    TaskHandle_t receiverTaskHandle;
-}Metronome_params_t;
-
-
-typedef struct 
-{
-    TaskHandle_t receiverTaskHandle;
-}Checker_params_t;
-
-struct beat
-{
-    uint8_t counts;
-    uint16_t bpm; 
-};
+#include <stddef.h>
 
 typedef struct song
 {
@@ -31,3 +16,32 @@ typedef struct song
 }song_t;
 
 extern song_t Songs[3];
+
+typedef struct 
+{
+    uint32_t bpm;
+    TaskHandle_t receiverTaskHandle;
+    song_t song;
+    QueueHandle_t control_queue;
+}Metronome_params_t;
+
+
+typedef struct 
+{
+    TaskHandle_t receiverTaskHandle;
+    song_t song;
+}Checker_params_t;
+
+typedef struct {
+    TaskHandle_t espnow_task_handle;
+    TaskHandle_t pressure_sensor_task_handle;
+    TaskHandle_t metronome_task_handle;
+    TaskHandle_t input_checker_task_handle;
+} Setup_task_params_t;
+struct beat //unused
+{
+    uint8_t counts;
+    uint16_t bpm; 
+};
+
+
