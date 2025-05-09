@@ -36,40 +36,10 @@
 #define ECHO_UART_BAUD_RATE     (CONFIG_EXAMPLE_UART_BAUD_RATE)
 #define ECHO_TASK_STACK_SIZE    (CONFIG_EXAMPLE_TASK_STACK_SIZE)
 
-//Flashing LED time period
-#define DEFAULT_PERIOD 10
-
-static uint8_t s_led_state = 1;
-
-static uint32_t flash_period = DEFAULT_PERIOD;
-static uint32_t flash_period_dec = DEFAULT_PERIOD/10;
-
-
 //FreeRtos i think???
 TaskHandle_t myTaskHandle = NULL;
 
 #define BUF_SIZE (1024)
-
-//Calling LED task
-static void blink_led(void)
-{
-    // Set the GPIO level according to the state (LOW or HIGH)
-    gpio_set_level(13, s_led_state);
-}
-
-
-//Actually blinking the LED
-static void blink_task(void *arg)
-{
-    while(1)
-    {
-    s_led_state = !s_led_state;
-    blink_led();
-    vTaskDelay(flash_period/ portTICK_PERIOD_MS);
-    }
-
-}
-
 
 static void echo_task(void *arg)
 {
@@ -96,7 +66,7 @@ static void echo_task(void *arg)
     // Configure a temporary buffer for the incoming data
     uint8_t *data = (uint8_t *) malloc(BUF_SIZE);
 
-    uart_write_bytes(ECHO_UART_PORT_NUM, "Commands", strlen("Commands"));
+//    uart_write_bytes(ECHO_UART_PORT_NUM, "Commands", strlen("Commands"));
     while (1)
     {
         // Read data from the UART
@@ -108,44 +78,16 @@ static void echo_task(void *arg)
             data[len] = '\0';
             switch(data[0])
             {
-                case 'I':
+                case 'tequila_easy':
                     s_led_state = 1;
                     blink_led();
                     uart_write_bytes(ECHO_UART_PORT_NUM, "ESP32", strlen("ESP32"));
                     break;
-                case 'T':
+                case 'tequila_normal':
                     flash_period -= flash_period_dec;
                     if(flash_period <= flash_period_dec) flash_period = flash_period_dec;
-                    break;
-                case 'A':
-                    vTaskResume(myTaskHandle);
-                    break;
-                case 'B':
-                    vTaskSuspend(myTaskHandle);
-                    break;
-                case 'R':
-                    flash_period = DEFAULT_PERIOD;
-                    break;
-                default:
                     break;
             }
         }
     }
 }
-
-/*
-void app_main(void)
-{
-    //Initializing Blink stuf
-
-    gpio_reset_pin(13);
-    // Set the GPIO as a push/pull output 
-    gpio_set_direction(13, GPIO_MODE_OUTPUT);
-    blink_led();
-    
-    xTaskCreate(echo_task, "uart_echo_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
-    //xTaskCreate(blink_task, "blink_LED", 1024, NULL, 5, &myTaskHandle);
-    vTaskSuspend(myTaskHandle);
-
-}
-*/

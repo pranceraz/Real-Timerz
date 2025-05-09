@@ -15,15 +15,18 @@
 #include "esp_mac.h"
 #include "labview_output.h"
 
-#define ESPNOW_QUEUE_SIZE 6
+#define ESPNOW_QUEUE_SIZE 6 
 #define ECHO_BYTE 1
 #define CONFIG_ESPNOW_CHANNEL 1
 
 static const char *TAG = "espnow_echo_receiver";
 static QueueHandle_t recv_queue = NULL;
+static QueueHandle_t song_queue = NULL;
 uint8_t state = 0b1000;
 
 static uint8_t s_example_broadcast_mac[ESP_NOW_ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+static void example_espnow_deinit(example_espnow_send_param_t *send_param); 
 
 static void example_wifi_init(void) {
     ESP_ERROR_CHECK(esp_netif_init());
@@ -34,6 +37,9 @@ static void example_wifi_init(void) {
     ESP_ERROR_CHECK(esp_wifi_set_mode(ESPNOW_WIFI_MODE));
     ESP_ERROR_CHECK(esp_wifi_start());
     ESP_ERROR_CHECK(esp_wifi_set_channel(CONFIG_ESPNOW_CHANNEL, WIFI_SECOND_CHAN_NONE));
+#if CONFIG_ESPNOW_ENABLE_LONG_RANGE
+    ESP_ERROR_CHECK(esp_wifi_set_protocol(ESPNOW_WIFI_IF, WIFI_PROTOCOL_11B | WIFI_PROTOCOL_11G | WIFI_PROTOCOL_11N | WIFI_PROTOCOL_LR));
+#endif
 }
 
 static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status) {
@@ -98,6 +104,17 @@ static void espnow_echo_task(void *pvParameter) {
     }
 }
 
+// --- TASK 2: ESP-NOW Sending Task ---
+static void espnow_send_task(void *pvParameter) {
+    uint8_t song_choice;
+
+    while (1) {
+        if (xQueueReceive(song_queue, &song_choice, portMAX_DELAY) == pdPASS) {
+            esp_now_send(send_param->dest_mac, &song_choice, 1); // Send just one byte
+        }
+    }
+}
+
 static esp_err_t example_espnow_init(void) {
     ESP_ERROR_CHECK(esp_now_init());
     ESP_ERROR_CHECK(esp_now_register_send_cb(example_espnow_send_cb));
@@ -114,6 +131,20 @@ static esp_err_t example_espnow_init(void) {
     ESP_ERROR_CHECK(esp_now_add_peer(peer));
     free(peer);
 
+    send_param = malloc(sizeof(example_espnow_send_param_t));
+    if (!send_param) return ESP_FAIL;
+    memset(send_param, 0, sizeof(example_espnow_send_param_t));
+    send_param->unicast = false;
+    send_param->broadcast = true;
+    send_param->state = 0;
+    send_param->magic = esp_random();
+    send_param->count = 0;
+    send_param->delay = 0;
+    send_param->len = sizeof(example_espnow_data_t);
+    send_param->buffer = malloc(send_param->len);
+    if (!send_param->buffer) return ESP_FAIL;
+    memcpy(send_param->dest_mac, s_example_broadcast_mac, ESP_NOW_ETH_ALEN);
+
     return ESP_OK;
 }
 
@@ -122,16 +153,13 @@ void app_main(void) {
     example_wifi_init();
     example_espnow_init();
 
-    //Initializing Blink stuf
+    // song_queue = xQueueCreate(5, sizeof(uint8_t));
+    // assert(song_queue);
 
-    gpio_reset_pin(13);
-    // Set the GPIO as a push/pull output 
-    gpio_set_direction(13, GPIO_MODE_OUTPUT);
-    blink_led();
-
-    recv_queue = xQueueCreate(ESPNOW_QUEUE_SIZE, sizeof(example_espnow_event_t));
-    assert(recv_queue);
-    // xTaskCreate(echo_task, "uart_echo_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
-    // xTaskCreate(blink_task, "blink_LED", 1024, NULL, 5, &myTaskHandle);
+    // recv_queue = xQueueCreate(ESPNOW_QUEUE_SIZE, sizeof(example_espnow_event_t));
+    // assert(recv_queue);
+    
+    xTaskCreate(echo_task, "uart_echo_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
     xTaskCreate(espnow_echo_task, "espnow_echo_task", 2048, NULL, 5, NULL);
+    xTaskCreate(espnow_send_task, "espnow_send_song", 2048, NULL, 5, NULL);
 }
