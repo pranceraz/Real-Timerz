@@ -44,4 +44,5 @@ struct beat //unused
     uint16_t bpm; 
 };
 
+extern song_t Songs[3]; 
 

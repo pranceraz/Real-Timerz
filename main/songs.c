@@ -1,5 +1,7 @@
 #include "songs.h"
 
+song_t Songs[3]; 
+
 void initialize_song_data(void){
 
     static uint16_t tequila_easy_beats[73];

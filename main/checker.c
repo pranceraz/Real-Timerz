@@ -1,5 +1,7 @@
 #include "checker.h"
 
+uint8_t latest_input;
+
 void input_checker_task(void *pvParameter){
     
     Checker_params_t *pParams = (Checker_params_t *)pvParameter;

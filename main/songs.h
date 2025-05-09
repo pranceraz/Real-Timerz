@@ -1,7 +1,6 @@
 /*songs.h*/
 #pragma once
 #include "structs.h"
-song_t Songs[3]; 
 //Tequila Easy 
 
 
