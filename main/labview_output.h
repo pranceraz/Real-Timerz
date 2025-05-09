@@ -85,8 +85,8 @@ static void echo_task(void *arg)
                     xQueueSend(song_queue, &s_led_state, 0);
                     break;
                 case 'tequila_normal':
-                s_led_state = 2;
-                xQueueSend(song_queue, &s_led_state, 0);
+                    s_led_state = 2;
+                    xQueueSend(song_queue, &s_led_state, 0);
                     break;
             }
         }
