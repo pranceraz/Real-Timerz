@@ -37,6 +37,7 @@
 #define ECHO_TASK_STACK_SIZE    (CONFIG_EXAMPLE_TASK_STACK_SIZE)
 
 static uint8_t s_led_state = 1;
+static QueueHandle_t song_queue;
 
 //FreeRtos i think???
 TaskHandle_t myTaskHandle = NULL;
