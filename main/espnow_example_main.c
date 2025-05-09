@@ -21,6 +21,7 @@
 
 static const char *TAG = "espnow_echo_receiver";
 static QueueHandle_t recv_queue = NULL;
+uint8_t state = 0b1000;
 
 static uint8_t s_example_broadcast_mac[ESP_NOW_ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
@@ -84,14 +85,12 @@ static void espnow_echo_task(void *pvParameter) {
             if (evt.id == EXAMPLE_ESPNOW_RECV_CB) {
                 example_espnow_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
                 ESP_LOGI(TAG, "Received %d bytes from "MACSTR, recv_cb->data_len, MAC2STR(recv_cb->mac_addr));
-                //Play beat every time new message
-                if (recv_cb->data[0] == 0b1000) {  // Or 8
-                    const char *signal = "SOUND\n";  // LabVIEW listens for this string
-                    uart_write_bytes(UART_NUM_1, signal, strlen(signal));
-                }
+                state = recv_cb->data[0];
+                log_4bitbinary_state(state);
                 // Optionally log data
-                for (int i = 0; i < recv_cb->data_len; i++) ESP_LOGI(TAG, "Byte %d: %02X", i, recv_cb->data[i]);
-
+                // for (int i = 0; i < recv_cb->data_len; i++) { 
+                // ESP_LOGI(TAG, "Byte %d: %02X", i, recv_cb->data[i]);
+                // }
                 // Send back an "echo" (single byte = 1) to sender
                 uint8_t echo_data = ECHO_BYTE;
                 esp_err_t result = esp_now_send(recv_cb->mac_addr, &echo_data, 1);
@@ -139,10 +138,7 @@ void app_main(void) {
 
     recv_queue = xQueueCreate(ESPNOW_QUEUE_SIZE, sizeof(example_espnow_event_t));
     assert(recv_queue);
-    uint8_t state = 0b1000;
-    log_4bitbinary_state(state);
-    xTaskCreate(echo_task, "uart_echo_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
-    xTaskCreate(blink_task, "blink_LED", 1024, NULL, 5, &myTaskHandle);
+    // xTaskCreate(echo_task, "uart_echo_task", ECHO_TASK_STACK_SIZE, NULL, 10, NULL);
+    // xTaskCreate(blink_task, "blink_LED", 1024, NULL, 5, &myTaskHandle);
     xTaskCreate(espnow_echo_task, "espnow_echo_task", 2048, NULL, 5, NULL);
-    vTaskSuspend(myTaskHandle);
 }
