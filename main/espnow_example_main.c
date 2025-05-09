@@ -88,17 +88,10 @@ static void espnow_echo_task(void *pvParameter) {
                 state = recv_cb->data[0];
                 log_4bitbinary_state(state);
                 // Optionally log data
-                // for (int i = 0; i < recv_cb->data_len; i++) { 
-                // ESP_LOGI(TAG, "Byte %d: %02X", i, recv_cb->data[i]);
-                // }
-                // Send back an "echo" (single byte = 1) to sender
-                uint8_t echo_data = ECHO_BYTE;
-                esp_err_t result = esp_now_send(recv_cb->mac_addr, &echo_data, 1);
-                if (result == ESP_OK) {
-                    ESP_LOGI(TAG, "Echo sent to "MACSTR, MAC2STR(recv_cb->mac_addr));
-                } else {
-                    ESP_LOGW(TAG, "Echo send failed");
+                for (int i = 0; i < recv_cb->data_len; i++) { 
+                ESP_LOGI(TAG, "Byte %d: %02X", i, recv_cb->data[i]);
                 }
+                // Send back an "echo" (single byte = 1) to sender
                 free(recv_cb->data);
             }
         }
