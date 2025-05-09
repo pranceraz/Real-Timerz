@@ -23,10 +23,9 @@ void metronome_task(void *pvParameter) {
     for (;;) {
         ESP_LOGI(TAG_METRONOME, "%d",tick);
         
-        tick += 1; // Toggle state
+        tick += 1; // beat count
 
         // Delay until the next beat
         vTaskDelay(pdMS_TO_TICKS(delay_ms));
-        xTaskNotifyGive(espnow_handle); 
     }
 }

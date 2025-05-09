@@ -1,18 +1,18 @@
 #include "input_handler.h"
 
 // Function to process sensor state
-void process_sensor_state(uint8_t state) {
-    // Log the sensor state in binary format
-    char buf[5];
-    for (int i = 3; i >= 0; i--) {
-        buf[3 - i] = ((state >> i) & 1) ? '1' : '0';
-    }
-    buf[4] = '\0';
-    ESP_LOGI(PRESSURE_TAG, "Sensor state: %s", buf);
+// void process_sensor_state(uint8_t state) {
+//     // Log the sensor state in binary format
+//     char buf[5];
+//     for (int i = 3; i >= 0; i--) {
+//         buf[3 - i] = ((state >> i) & 1) ? '1' : '0';
+//     }
+//     buf[4] = '\0';
+//     ESP_LOGI(PRESSURE_TAG, "Sensor state: %s", buf);
     
-    // Turn on LED if any sensor is pressed
-    gpio_set_level(LED_PIN, state ? 1 : 0);
-}
+//     // Turn on LED if any sensor is pressed
+//     gpio_set_level(LED_PIN, state ? 1 : 0);
+// }
 
 // Configure hardware (ADC and GPIO)
 void configure_hardware(void) {

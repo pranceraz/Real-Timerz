@@ -10,6 +10,12 @@ typedef struct
     TaskHandle_t receiverTaskHandle;
 }Metronome_params_t;
 
+
+typedef struct 
+{
+    TaskHandle_t receiverTaskHandle;
+}Checker_params_t;
+
 struct beat
 {
     uint8_t counts;

@@ -11,3 +11,5 @@
 static const char *TAG_METRONOME = "metronome";
 
 void metronome_task(void *pvParameter);
+
+static QueueHandle_t fps_queue = NULL;

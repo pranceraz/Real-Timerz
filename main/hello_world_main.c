@@ -18,6 +18,7 @@
 #include "metronome.h"
 #include "structs.h"
 #include "input_handler.h"
+#include "checker.h"
 //#include "Inc/espnow_example.h"
 
 //definitions
@@ -37,6 +38,7 @@ void Sys_init(void){
 
 void app_main(void)
 {       
+        fps_queue = xQueueCreate(5, sizeof(uint8_t));
 
             // --- Basic System Information ---
         esp_chip_info_t chip_info;
@@ -84,6 +86,8 @@ void app_main(void)
         static Metronome_params_t Metronome_params;
         Metronome_params.bpm = 90;
         Metronome_params.receiverTaskHandle  = espnow_handle;
+        static Checker_params_t Checker_params;
+        Checker_params.receiverTaskHandle = espnow_handle;
         xTaskCreate(
             metronome_task,          // Function that implements the task
             "metronome_task",        // Text name for the task
@@ -91,6 +95,15 @@ void app_main(void)
             (void*)&Metronome_params,                    // Parameter passed into the task
             5,                       // Priority (same as pressure sensor for now)
             NULL                     // Task handle
+        );
+
+        xTaskCreate(
+            input_checker_task,
+            "input_checker_task",
+            2048,
+            (void*)&Checker_params,
+            6,
+            NULL
         );
 
         // The scheduler will start automatically

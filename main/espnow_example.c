@@ -59,7 +59,7 @@ static void espnow_send_task(void *pvParameter) {
     uint32_t notificationValue;
 
     while (1) {
-        notificationValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        //notificationValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         
         printf("Receiver: Waiting for metronome...\n");
         notificationValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);

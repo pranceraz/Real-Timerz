@@ -10,7 +10,7 @@
 #define FPS4_CHANNEL ADC1_CHANNEL_3   // GPIO39
 #define LED_PIN GPIO_NUM_13
 #define PRESSURE_THRESHOLD 100
-#define POLLING_DELAY_MS 5
+#define POLLING_DELAY_MS 10
 
 static const char *PRESSURE_TAG = "pressure_sensor";
 
