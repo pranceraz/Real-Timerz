@@ -1,4 +1,5 @@
 #include "input_handler.h"
+#include "checker.h"
 
 //Function to process sensor state
 void process_sensor_state(uint8_t state) {
@@ -49,8 +50,8 @@ void pressure_sensor_task(void *pvParameter) {
         state |= (adc1_get_raw(FPS4_CHANNEL) > PRESSURE_THRESHOLD) << 0;
 
         // Only process if state has changed
-        if (state != prev_sensor_state) {
-            process_sensor_state(state);
+        if (state != prev_sensor_state && state != 0) {
+            xQueueSend(input_q, &state, portMAX_DELAY);
             prev_sensor_state = state;
         }
         

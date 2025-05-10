@@ -15,15 +15,16 @@ void metronome_task(void *pvParameter) {
     song_t selected_song = pParams->song; 
 
     ESP_LOGI(TAG_METRONOME, "Metronome task started at %lu, BPM.", bpm);
-    uint32_t delay_ms = 60000 / bpm; // Calculate delay between beats in milliseconds
-    int tick = 0; // To alternate messages
-
-
+    
     if (bpm == 0) {
         ESP_LOGI(TAG_METRONOME, "Metronome task received invalid BPM (0). Halting task.");
         vTaskDelete(NULL); // Delete self if BPM is invalid
         return; // Should not be reached after vTaskDelete(NULL)
     }
+    uint32_t delay_ms = 60000 / bpm; // Calculate delay between beats in milliseconds
+    int tick = 0; // To alternate messages
+
+
     for (;;) {
         ESP_LOGI(TAG_METRONOME, "%d",tick);
         expected_beat_val = selected_song.beat_values[tick];

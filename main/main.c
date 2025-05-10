@@ -10,10 +10,13 @@ void Sys_init(void){
     ESP_ERROR_CHECK(nvs_flash_init());
     example_wifi_init();
     example_espnow_init();
+    initialize_song_data();
+    current_song = Songs[0];
 }
 
 void app_main(void)
 {       
+        Sys_init();
         QueueHandle_t system_control_queue; 
         QueueHandle_t fps_queue;
         system_control_queue = xQueueCreate(5, sizeof(system_event_t));
@@ -46,19 +49,9 @@ void app_main(void)
         //ESP_ERROR_CHECK(nvs_flash_init());
         //example_wifi_init();
        // example_espnow_init();
-        Sys_init();
         
-        
-        static Checker_params_t Checker_params;
-        Checker_params.receiverTaskHandle = espnow_handle;
-        Checker_params.song = current_song;
+               
 
-                
-        static Metronome_params_t Metronome_params;
-        Metronome_params.bpm = current_song.bpm;
-        Metronome_params.selfTaskHandle  = metronome_handle;
-        Metronome_params.song = current_song;
-        Metronome_params.control_queue = system_control_queue; 
 
         //order MATTERS
         xTaskCreate(espnow_send_task, "espnow_send_task", 2048, NULL, 5, &espnow_handle);
@@ -73,6 +66,12 @@ void app_main(void)
             &pressure_sensor_handle  // Task handle
         );
         
+        static Metronome_params_t Metronome_params;
+        Metronome_params.bpm = current_song.bpm;
+        Metronome_params.selfTaskHandle  = metronome_handle;
+        Metronome_params.song = current_song;
+        Metronome_params.control_queue = system_control_queue; 
+
         xTaskCreate(
             metronome_task,          // Function that implements the task
             "metronome_task",        // Text name for the task
@@ -81,6 +80,10 @@ void app_main(void)
             5,                       // Priority (same as pressure sensor for now)
             &metronome_handle                     // Task handle
         );
+
+        static Checker_params_t Checker_params;
+        Checker_params.receiverTaskHandle = espnow_handle;
+        Checker_params.song = current_song;
 
         xTaskCreate(
             input_checker_task,

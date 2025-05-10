@@ -14,7 +14,7 @@
 
 static const char *TAG_INPUT = "input_check";
 
-static QueueHandle_t input_q = NULL;
+extern QueueHandle_t input_q;
 extern uint8_t latest_input[INPUT_BUFFER_LENGTH];
 //extern int input_index; 
 extern uint8_t is_correct;
