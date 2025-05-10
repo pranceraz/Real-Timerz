@@ -14,7 +14,6 @@
 #include "driver/gpio.h"
 #include "sdkconfig.h"
 #include "esp_log.h"
-
 /**
  * This is an example which echos any data it receives on configured UART back to the sender,
  * with hardware flow control turned off. It does not use UART driver event queue.
