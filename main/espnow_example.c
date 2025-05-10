@@ -1,3 +1,7 @@
+/*
+**espnow_example.c 
+*/
+
 #include "espnow_example.h"
 
 static const char *TAG = "espnow_sender";
@@ -56,20 +60,32 @@ static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_
 static void espnow_send_task(void *pvParameter) {
     uint8_t sensor_state;
     uint8_t sensor_data[4];
-    uint32_t notificationValue;
+    //uint32_t notificationValue;
+    uint32_t notification_value_received;
+    uint8_t value_to_send_over_espnow;
 
     while (1) {
         //notificationValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         
         printf("Receiver: Waiting for metronome...\n");
-        notificationValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        // notificationValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         
 
-        if (notificationValue > 0) { 
-            log_sensor_state(sensor_state);
-            esp_now_send(send_param->dest_mac, &sensor_state, 1); // Send just one byte
+        // if (notificationValue > 0) { 
+        //     //log_sensor_state(sensor_state);
+        //     esp_now_send(send_param->dest_mac, &is_correct, 1); // Send just one byte
+        //     is_correct = 0;
+        // }
+        if (xTaskNotifyWait(0x00,          /* Don't clear any bits on entry. */
+                             ULONG_MAX,     /* Clear all bits on exit (effectively consuming the notification). */
+                             &notification_value_received, /* Stores the notification value. */
+                             portMAX_DELAY) == pdPASS) {
 
-        }
+                                value_to_send_over_espnow = (uint8_t)notification_value_received;
+                                ESP_LOGI(TAG, "Notification received by ESP-NOW task. Value: %u", value_to_send_over_espnow);
+                             }
+        
+        esp_now_send(send_param->dest_mac, &value_to_send_over_espnow, sizeof(value_to_send_over_espnow));
     }
 }
 

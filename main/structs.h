@@ -20,7 +20,7 @@ extern song_t Songs[3];
 typedef struct 
 {
     uint32_t bpm;
-    TaskHandle_t receiverTaskHandle;
+    TaskHandle_t selfTaskHandle;
     song_t song;
     QueueHandle_t control_queue;
 }Metronome_params_t;

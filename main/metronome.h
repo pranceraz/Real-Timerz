@@ -1,3 +1,6 @@
+/*
+**metronome.h
+*/
 #pragma once
 
 #include "freertos/FreeRTOS.h"
@@ -12,6 +15,6 @@
 #define METRONOME_BPM 120           // Beats per minute
 
 static const char *TAG_METRONOME = "metronome";
-
+extern uint8_t expected_beat_val;
 void metronome_task(void *pvParameter);
 

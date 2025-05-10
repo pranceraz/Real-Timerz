@@ -1,3 +1,6 @@
+/*
+**main.c
+*/
 #include "main.h"
 
 //functions
@@ -53,7 +56,7 @@ void app_main(void)
                 
         static Metronome_params_t Metronome_params;
         Metronome_params.bpm = current_song.bpm;
-        Metronome_params.receiverTaskHandle  = espnow_handle;
+        Metronome_params.selfTaskHandle  = metronome_handle;
         Metronome_params.song = current_song;
         Metronome_params.control_queue = system_control_queue; 
 
