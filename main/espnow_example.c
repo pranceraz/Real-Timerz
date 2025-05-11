@@ -55,6 +55,21 @@ static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_
     // Optionally log send status
 }
 
+static void example_espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
+    if (!recv_info || !data || len <= 0) return;
+
+    // Copy MAC address and data into a struct for the task
+    example_espnow_event_t evt;
+    example_espnow_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
+    memcpy(recv_cb->mac_addr, recv_info->src_addr, ESP_NOW_ETH_ALEN);
+    recv_cb->data = malloc(len);
+    if (!recv_cb->data) return;
+    memcpy(recv_cb->data, data, len);
+    recv_cb->data_len = len;
+    evt.id = EXAMPLE_ESPNOW_RECV_CB;
+    xQueueSend(recv_queue, &evt, 0);
+}
+
 QueueHandle_t system_control_queue = NULL; 
 QueueHandle_t recv_queue = NULL;
 // --- TASK: ESPNOW Receive and Echo ---
@@ -146,7 +161,7 @@ static esp_err_t example_espnow_init(void) {
     send_param->len = sizeof(example_espnow_data_t);
     send_param->buffer = malloc(send_param->len);
     if (!send_param->buffer) return ESP_FAIL;
-    p(send_param->dest_mac, s_example_broadcast_mac, ESP_NOW_ETH_ALEN);
+    memcpy(send_param->dest_mac, s_example_broadcast_mac, ESP_NOW_ETH_ALEN);
 
     return ESP_OK;
 }

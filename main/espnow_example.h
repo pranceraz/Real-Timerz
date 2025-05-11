@@ -97,6 +97,7 @@ typedef struct {
 } example_espnow_send_param_t;
 
 void espnow_receive_task(void *pvParameter);
+static void example_espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len);
 extern QueueHandle_t recv_queue;
 extern QueueHandle_t system_control_queue;
 
