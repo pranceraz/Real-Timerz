@@ -80,16 +80,9 @@ void echo_task(void *arg)
         if (len)
         {
             data[len] = '\0';
-            switch(data[0])
-            {
-                case 'A':
-                    s_led_state = 1;
-                    xQueueSend(song_queue, &s_led_state, 0);
-                    break;
-                case 'B':
-                    s_led_state = 2;
-                    xQueueSend(song_queue, &s_led_state, 0);
-                    break;
+            if (strncmp((char *)data, "START", 5) == 0) {
+                char msg[] = "START";  // Or any value you'd like to represent "START"
+                xQueueSend(song_queue, &msg, portMAX_DELAY);
             }
         }
     }
