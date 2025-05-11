@@ -1,4 +1,4 @@
-/*#include "setup.h"
+#include "setup.h"
 void setup_task(void *pvParameter) {
     // This task waits for a specific input to "authorize" other tasks to run
 
@@ -19,38 +19,19 @@ void setup_task(void *pvParameter) {
     vTaskSuspend(input_checker_handle);
 
     ESP_LOGI(TAG_SETUP, "All tasks suspended.");
-    while (!authorized) {
-        // Get input (replace with your actual input method, e.g., UART)
-        // For example, using fgets from stdin (requires appropriate setup):
-        if (fgets(received_input, sizeof(received_input), stdin) != NULL) {
-            //Remove newline character
-            received_input[strcspn(received_input, "\n")] = 0;
-            ESP_LOGI(TAG_SETUP, "Received input: '%s'", received_input);
-
-            if (strcmp(received_input, expected_input) == 0) {
-                authorized = true;
-                ESP_LOGI(TAG_SETUP, "Authorization granted!");
-            } else {
-                ESP_LOGI(TAG_SETUP, "Incorrect input.  Still waiting for '%s'", expected_input);
-            }
-        } else {
-            ESP_LOGE(TAG_SETUP, "Error reading input or no input received.");
-            vTaskDelay(pdMS_TO_TICKS(1000)); // Wait before trying again
-        }
-
-
-        if (!authorized) {
-            vTaskDelay(pdMS_TO_TICKS(100)); // Small delay to prevent starving other tasks if using a busy-wait input method
+    
+    char command_buf[16];
+    if (xQueueReceive(system_control_queue, command_buf, portMAX_DELAY)) {
+        if (strcmp(command_buf, "START") == 0) {
+            //Once authorized, resume other tasks
+            vTaskResume(espnow_handle);
+            vTaskResume(pressure_sensor_handle);
+            vTaskResume(metronome_handle);
+            vTaskResume(input_checker_handle);
+            ESP_LOGI(TAG_SETUP, "All tasks resumed.");
         }
     }
 
-    //Once authorized, resume other tasks
-    vTaskResume(espnow_handle);
-    vTaskResume(pressure_sensor_handle);
-    vTaskResume(metronome_handle);
-    vTaskResume(input_checker_handle);
-
-    ESP_LOGI(TAG_SETUP, "All tasks resumed.");
 
     vTaskDelete(NULL); // Delete this task as it's no longer needed
 }
@@ -59,4 +40,3 @@ void setup_task(void *pvParameter) {
 
 //In order for the the tasks to return back to the setup_task you will need a counter passed into the metronome task in order to keep track of how many beats have happened.
 //The other tasks will need a way to send the signal back to the setup task.
-*/

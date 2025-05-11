@@ -56,6 +56,34 @@ static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_
 }
 
 
+// --- TASK: ESPNOW Receive and Echo ---
+static void espnow_receive_task(void *pvParameter) {
+    example_espnow_event_t evt;
+    QueueHandle_t system_control_queue; 
+    QueueHandle_t recv_queue;
+    system_control_queue = xQueueCreate(5, sizeof(char[16]));
+    recv_queue = xQueueCreate(5, sizeof(uint8_t));
+    char control_msg[16];
+    while (1) {
+        if (xQueueReceive(recv_queue, &evt, portMAX_DELAY) == pdTRUE) {
+            if (evt.id == EXAMPLE_ESPNOW_RECV_CB) {
+                example_espnow_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
+                // Ensure null termination
+                int msg_len = recv_cb->data_len;
+                if (msg_len >= sizeof(control_msg)) msg_len = sizeof(control_msg) - 1;
+                memcpy(control_msg, recv_cb->data, msg_len);
+                control_msg[msg_len] = '\0';
+
+                if (strcmp(control_msg, "START") == 0) {
+                    xQueueSend(system_control_queue, control_msg, 0);
+                    ESP_LOGI("ESPNOW_RECEIVER", "Received and forwarded START");
+                }
+                free(recv_cb->data);
+            }
+        }
+    }
+}
+
 // --- TASK 2: ESP-NOW Sending Task ---
 static void espnow_send_task(void *pvParameter) {
     uint8_t sensor_state;

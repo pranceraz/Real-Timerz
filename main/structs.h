@@ -37,6 +37,7 @@ typedef struct {
     TaskHandle_t pressure_sensor_task_handle;
     TaskHandle_t metronome_task_handle;
     TaskHandle_t input_checker_task_handle;
+    TaskHandle_t self_task_handle;
 } Setup_task_params_t;
 struct beat //unused
 {

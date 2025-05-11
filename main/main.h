@@ -34,9 +34,6 @@ typedef enum {
 static const char *TAG_MAIN =  "Main";
 
 
-extern QueueHandle_t system_control_queue; // control queue
-
-
 TaskHandle_t espnow_handle = NULL;
 TaskHandle_t pressure_sensor_handle = NULL;
 TaskHandle_t metronome_handle = NULL;

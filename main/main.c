@@ -17,11 +17,6 @@ void Sys_init(void){
 void app_main(void)
 {       
         Sys_init();
-        QueueHandle_t system_control_queue; 
-        QueueHandle_t fps_queue;
-        system_control_queue = xQueueCreate(5, sizeof(system_event_t));
-        fps_queue = xQueueCreate(5, sizeof(uint8_t));
-
             // --- Basic System Information ---
         esp_chip_info_t chip_info;
         esp_chip_info(&chip_info);
@@ -51,7 +46,7 @@ void app_main(void)
        // example_espnow_init();
         
                
-
+        
 
         //order MATTERS
         xTaskCreate(espnow_send_task, "espnow_send_task", 2048, NULL, 5, &espnow_handle);
@@ -93,7 +88,9 @@ void app_main(void)
             6,
             &input_checker_handle
         );
-
+        static Setup_task_params_t setup_params;
+        setup_params.
+        xTaskCreate(setup_task, "setup_task", (void*)&Setup_params, NULL, 5, )
         // The scheduler will start automatically
     //    fps_queue = xQueueCreate(5, sizeof(uint8_t));
     //  assert(fps_queue);

@@ -115,4 +115,7 @@ typedef struct {
     uint8_t sensor_data[4]; // Array to hold sensor data
 } example_espnow_data_t;
 
+extern QueueHandle_t recv_queue;
+extern QueueHandle_t system_control_queue;
+
 #endif // ESPNOW_EXAMPLE_H
