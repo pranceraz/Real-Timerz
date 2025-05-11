@@ -122,7 +122,8 @@ static void espnow_send_task(void *pvParameter) {
 static esp_err_t example_espnow_init(void) {
     ESP_ERROR_CHECK(esp_now_init());
     ESP_ERROR_CHECK(esp_now_register_send_cb(example_espnow_send_cb));
-
+    ESP_ERROR_CHECK(esp_now_register_recv_cb(example_espnow_recv_cb));
+    
     esp_now_peer_info_t *peer = malloc(sizeof(esp_now_peer_info_t));
     if (!peer) return ESP_FAIL;
     memset(peer, 0, sizeof(esp_now_peer_info_t));
@@ -145,7 +146,7 @@ static esp_err_t example_espnow_init(void) {
     send_param->len = sizeof(example_espnow_data_t);
     send_param->buffer = malloc(send_param->len);
     if (!send_param->buffer) return ESP_FAIL;
-    memcpy(send_param->dest_mac, s_example_broadcast_mac, ESP_NOW_ETH_ALEN);
+    p(send_param->dest_mac, s_example_broadcast_mac, ESP_NOW_ETH_ALEN);
 
     return ESP_OK;
 }
