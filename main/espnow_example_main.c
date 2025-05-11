@@ -77,7 +77,7 @@ static void espnow_send_task(void *pvParameter) {
     while (1) {
         if (xQueueReceive(song_queue, &song_choice, portMAX_DELAY) == pdPASS) {
             int len = strnlen(song_choice, SONG_MSG_LEN);
-            esp_now_send(send_param->dest_mac, (uint8_t *)song_choice, len); // Send just one byte
+            esp_now_send(send_param->dest_mac, (const uint8_t *)song_choice, len); // Send just one byte
         }
     }
 }
