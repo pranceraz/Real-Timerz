@@ -82,7 +82,7 @@ void echo_task(void *arg)
                 char msg[SONG_MSG_LEN] = {0};
                 strncpy(msg, "START", SONG_MSG_LEN - 1);  // Safe copy
                 xQueueSend(song_queue, &msg, portMAX_DELAY);
-                xTaskDelete(NULL);
+                vTaskDelete(NULL);
             }
         }
     }
