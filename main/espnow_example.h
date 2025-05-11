@@ -96,26 +96,9 @@ typedef struct {
     uint8_t dest_mac[ESP_NOW_ETH_ALEN];   // MAC address of destination device.
 } example_espnow_send_param_t;
 
-#endif // ESPNOW_EXAMPLE_H
-#ifndef ESPNOW_EXAMPLE_H
-#define ESPNOW_EXAMPLE_H
-
-#include <stdint.h>
-
-#define EXAMPLE_ESPNOW_DATA_MAX 16
-#define EXAMPLE_ESPNOW_DATA_BROADCAST 0
-#define EXAMPLE_ESPNOW_DATA_UNICAST 1
-
-typedef struct {
-    uint8_t type;
-    uint8_t state;
-    uint16_t seq_num;
-    uint32_t magic;
-    uint16_t crc;
-    uint8_t sensor_data[4]; // Array to hold sensor data
-} example_espnow_data_t;
-
+void espnow_receive_task(void *pvParameter);
 extern QueueHandle_t recv_queue;
 extern QueueHandle_t system_control_queue;
 
 #endif // ESPNOW_EXAMPLE_H
+

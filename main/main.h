@@ -21,7 +21,7 @@
 #include "input_handler.h"
 #include "checker.h"
 #include "songs.h"
-//#include "setup.h"
+#include "setup.h"
 
 song_t current_song;
 

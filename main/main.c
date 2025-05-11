@@ -65,7 +65,6 @@ void app_main(void)
         Metronome_params.bpm = current_song.bpm;
         Metronome_params.selfTaskHandle  = metronome_handle;
         Metronome_params.song = current_song;
-        Metronome_params.control_queue = system_control_queue; 
 
         xTaskCreate(
             metronome_task,          // Function that implements the task
@@ -88,9 +87,15 @@ void app_main(void)
             6,
             &input_checker_handle
         );
+
+        xTaskCreate(espnow_receive_task, "receive_task", 2048,NULL,3,NULL);
         static Setup_task_params_t setup_params;
-        setup_params.
-        xTaskCreate(setup_task, "setup_task", (void*)&Setup_params, NULL, 5, )
+        setup_params.espnow_task_handle = espnow_handle;
+        setup_params.input_checker_task_handle = input_checker_handle;
+        setup_params.metronome_task_handle = metronome_handle;
+        setup_params.pressure_sensor_task_handle = pressure_sensor_handle;
+
+        xTaskCreate(setup_task, "setup_task", 4096,(void*)&setup_params, 5,NULL);
         // The scheduler will start automatically
     //    fps_queue = xQueueCreate(5, sizeof(uint8_t));
     //  assert(fps_queue);

@@ -55,17 +55,17 @@ static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_
     // Optionally log send status
 }
 
-
+QueueHandle_t system_control_queue = NULL; 
+QueueHandle_t recv_queue = NULL;
 // --- TASK: ESPNOW Receive and Echo ---
-static void espnow_receive_task(void *pvParameter) {
+void espnow_receive_task(void *pvParameter) {
     example_espnow_event_t evt;
-    QueueHandle_t system_control_queue; 
-    QueueHandle_t recv_queue;
+    
     system_control_queue = xQueueCreate(5, sizeof(char[16]));
     recv_queue = xQueueCreate(5, sizeof(uint8_t));
     char control_msg[16];
     while (1) {
-        if (xQueueReceive(recv_queue, &evt, portMAX_DELAY) == pdTRUE) {
+        if (xQueueReceive(recv_queue, &evt, portMAX_DELAY) == pdPASS) {
             if (evt.id == EXAMPLE_ESPNOW_RECV_CB) {
                 example_espnow_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
                 // Ensure null termination
