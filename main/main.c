@@ -88,7 +88,7 @@ void app_main(void)
             &input_checker_handle
         );
 
-        xTaskCreate(espnow_receive_task, "receive_task", 2048,NULL,3,NULL);
+        xTaskCreate(espnow_receive_task, "receive_task", 4096,NULL,3,NULL);
         static Setup_task_params_t setup_params;
         setup_params.espnow_task_handle = espnow_handle;
         setup_params.input_checker_task_handle = input_checker_handle;

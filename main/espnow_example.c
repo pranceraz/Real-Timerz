@@ -75,9 +75,8 @@ QueueHandle_t recv_queue = NULL;
 // --- TASK: ESPNOW Receive and Echo ---
 void espnow_receive_task(void *pvParameter) {
     example_espnow_event_t evt;
-    
     system_control_queue = xQueueCreate(5, sizeof(char[16]));
-    recv_queue = xQueueCreate(5, sizeof(uint8_t));
+    recv_queue = xQueueCreate(5, sizeof(example_espnow_event_t));
     char control_msg[16];
     while (1) {
         if (xQueueReceive(recv_queue, &evt, portMAX_DELAY) == pdPASS) {
