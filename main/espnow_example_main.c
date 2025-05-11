@@ -5,8 +5,6 @@
 #define ECHO_BYTE 1
 #define CONFIG_ESPNOW_CHANNEL 1
 
-#define SONG_MSG_LEN 16
-
 static const char *TAG = "espnow_echo_receiver";
 QueueHandle_t recv_queue = NULL;
 QueueHandle_t song_queue = NULL;

@@ -41,7 +41,7 @@
 #define ECHO_UART_BAUD_RATE     (CONFIG_EXAMPLE_UART_BAUD_RATE)
 #define ECHO_TASK_STACK_SIZE    (CONFIG_EXAMPLE_TASK_STACK_SIZE)
 
-
+#define SONG_MSG_LEN 16
 #define BUF_SIZE (1024)
 
 extern QueueHandle_t song_queue;
