@@ -56,136 +56,61 @@ static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_
     // Optionally log send status
 }
 
-
 #define TAG_RECEIVER_TASK "ESPNOW_reciver"
-#define TAG_CB "ESPNOW_RECV_CB" // Specific tag for the callback
-#define MAX_ESPNOW_MSG_SIZE 32  
+#define TAG_CB "ESPNOW_RECV_CB"
+#define MAX_ESPNOW_MSG_SIZE 32
 
 static void example_espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
-    // if (!recv_info || !data || len <= 0) return;
-
-    // // Copy MAC address and data into a struct for the task
-    // example_espnow_event_t evt;
-    // example_espnow_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
-    // memcpy(recv_cb->mac_addr, recv_info->src_addr, ESP_NOW_ETH_ALEN);
-    // recv_cb->data = malloc(len);
-    // if (!recv_cb->data) return;
-    // memcpy(recv_cb->data, data, len);
-    // recv_cb->data_len = len;
-    // evt.id = EXAMPLE_ESPNOW_RECV_CB;
-    // xQueueSend(recv_queue, &evt, 0);
-
-    char message_buffer[MAX_ESPNOW_MSG_SIZE];
     if (recv_info == NULL || data == NULL || len <= 0) {
         ESP_LOGE(TAG_CB, "Received invalid data (recv_info: %p, data: %p, len: %d)", recv_info, data, len);
         return;
     }
-    int copy_len = len;
-    if (copy_len >= MAX_ESPNOW_MSG_SIZE) {
-        ESP_LOGW(TAG_CB, "Received data length (%d) is too large, truncating to %d bytes.", len, MAX_ESPNOW_MSG_SIZE - 1);
-        copy_len = MAX_ESPNOW_MSG_SIZE - 1;
-    }
-    memcpy(message_buffer, data, copy_len); //copies data to message buffer
-    message_buffer[copy_len] = '\0'; 
-     if (recv_queue != NULL) {
-        if (xQueueSend(recv_queue, &message_buffer, pdMS_TO_TICKS(0)) != pdPASS) {
-            // pdMS_TO_TICKS(0) means don't block if the queue is full.
-            // You might want a small timeout or handle this error more robustly.
-            ESP_LOGW(TAG_CB, "Failed to send message to incoming_espnow_message_queue. Queue full?");
-        } else {
-            ESP_LOGI(TAG_CB, "Sent to queue: '%s'", message_buffer); // For debugging
 
+    // Check if the received data is equal to 8
+    if (len == 1 && data[0] == 8) {
+        uint8_t received_value = data[0];
+        if (recv_queue != NULL) {
+            if (xQueueSend(recv_queue, &received_value, pdMS_TO_TICKS(0)) != pdPASS) {
+                ESP_LOGW(TAG_CB, "Failed to send value 8 to recv_queue. Queue full?");
+            } else {
+                ESP_LOGI(TAG_CB, "Sent value 8 to recv_queue");
+            }
+        } else {
+            ESP_LOGE(TAG_CB, "recv_queue is NULL! Cannot send message.");
         }
     } else {
-        ESP_LOGE(TAG_CB, "incoming_espnow_message_queue is NULL! Cannot send message.");
-    } // end of null if
-
-
-    // No need to free `data` here, it's managed by the ESP-NOW stack.
-    // We are not `malloc`ing anything in this version of the callback for the message itself.
+        ESP_LOGI(TAG_CB, "Received data is not 8, ignoring.");
+    }
 }
 
-
-QueueHandle_t system_control_queue = NULL; 
+QueueHandle_t system_control_queue = NULL;
 QueueHandle_t recv_queue = NULL;
-// --- TASK: ESPNOW Receive ---
+
 void espnow_receive_task(void *pvParameter) {
-    // example_espnow_event_t evt;
-    // system_control_queue = xQueueCreate(5, sizeof(char[16]));
-    // recv_queue = xQueueCreate(5, sizeof(example_espnow_event_t));
-    // char control_msg[16];
-    // while (1) {
-    //     if (xQueueReceive(recv_queue, &evt, portMAX_DELAY) == pdPASS) {
-    //         if (evt.id == EXAMPLE_ESPNOW_RECV_CB) {
-    //             example_espnow_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
-    //             // Ensure null termination
-    //             int msg_len = recv_cb->data_len;
-    //             if (msg_len >= sizeof(control_msg)) msg_len = sizeof(control_msg) - 1;
-    //             memcpy(control_msg, recv_cb->data, msg_len);
-    //             control_msg[msg_len] = '\0';
-
-    //             if (strcmp(control_msg, "START") == 0) {
-    //                 xQueueSend(system_control_queue, control_msg, 0);
-    //                 ESP_LOGI("ESPNOW_RECEIVER", "Received and forwarded START");
-    //             }
-    //             free(recv_cb->data);
-    //         }
-    //     }
-    // }
-    char received_msg_buffer[MAX_ESPNOW_MSG_SIZE];
+    uint8_t received_value;
     ESP_LOGI(TAG_RECEIVER_TASK, "ESP-NOW Receive Processing Task started. Waiting for messages...");
-    while (1)
-    {
-         if (xQueueReceive(recv_queue, &received_msg_buffer, portMAX_DELAY) == pdPASS) {
-            ESP_LOGI(TAG_RECEIVER_TASK, "Received message: '%s'", received_msg_buffer);
+    while (1) {
+        if (xQueueReceive(recv_queue, &received_value, portMAX_DELAY) == pdPASS) {
+            ESP_LOGI(TAG_RECEIVER_TASK, "Received value: '%d'", received_value);
 
-            // Process the received message
-            if (strcmp(received_msg_buffer, "S") == 0) {
-                ESP_LOGI(TAG_RECEIVER_TASK, "'START' command received! aka s");
-
-                // If system_control_queue is intended for use by another task:
+            if (received_value == 8) {
+                ESP_LOGI(TAG_RECEIVER_TASK, "Received value is 8, sending to system_control_queue");
                 if (system_control_queue != NULL) {
-                    // Forward the "START" command (or a processed version of it)
-                    // For simplicity, sending the same buffer.
-                    // Ensure system_control_queue is created to handle MAX_ESPNOW_MSG_SIZE.
-                    if (xQueueSend(system_control_queue, received_msg_buffer, pdMS_TO_TICKS(10)) == pdPASS) {
-                        ESP_LOGI(TAG_RECEIVER_TASK, "Forwarded 'START' to system_control_queue");
+                    if (xQueueSend(system_control_queue, &received_value, pdMS_TO_TICKS(10)) == pdPASS) {
+                        ESP_LOGI(TAG_RECEIVER_TASK, "Forwarded value 8 to system_control_queue");
                     } else {
-                        ESP_LOGW(TAG_RECEIVER_TASK, "Failed to forward 'START' to system_control_queue (full or timeout)");
+                        ESP_LOGW(TAG_RECEIVER_TASK, "Failed to forward value 8 to system_control_queue (full or timeout)");
                     }
                 } else {
-                    ESP_LOGI(TAG_RECEIVER_TASK, "system_control_queue is not initialized. 'START' command handled locally if applicable.");
-                    // Handle "START" directly in this task if no forwarding is needed
-                    // e.g., trigger_start_sequence();
+                    ESP_LOGE(TAG_RECEIVER_TASK, "system_control_queue is not initialized.");
                 }
-
-            } else if (strcmp(received_msg_buffer, "STOP") == 0) {
-                ESP_LOGI(TAG_RECEIVER_TASK, "'STOP' command received!");
-                // Handle STOP command, potentially forward to system_control_queue or act directly
-                // Example:
-                // if (system_control_queue != NULL) {
-                //     xQueueSend(system_control_queue, received_msg_buffer, pdMS_TO_TICKS(10));
-                // }
-
-            } else if (strcmp(received_msg_buffer, "RESET_COUNTERS") == 0) {
-                ESP_LOGI(TAG_RECEIVER_TASK, "'RESET_COUNTERS' command received!");
-                // Handle other specific commands
-
             } else {
-                ESP_LOGI(TAG_RECEIVER_TASK, "Received unknown command: '%s'", received_msg_buffer);
-                // Handle or ignore unknown commands as per your application's logic
+                ESP_LOGI(TAG_RECEIVER_TASK, "Received value is not 8, ignoring.");
             }
         }
-        // The task will loop back and wait for the next message.
-        // A small delay can be added here if the task does very minimal processing
-        // and you want to ensure other lower-priority tasks get a chance to run,
-        // though `xQueueReceive` with `portMAX_DELAY` is already blocking efficiently.
-        // vTaskDelay(pdMS_TO_TICKS(10)); // Usually not needed if xQueueReceive blocks
-    
     }
-    
-
 }
+
 
 
 // --- TASK 2: ESP-NOW Sending Task ---
