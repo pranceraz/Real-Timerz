@@ -68,22 +68,27 @@ void echo_task(void *arg)
     ESP_ERROR_CHECK(uart_driver_install(ECHO_UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, intr_alloc_flags));
     ESP_ERROR_CHECK(uart_param_config(ECHO_UART_PORT_NUM, &uart_config));
     ESP_ERROR_CHECK(uart_set_pin(ECHO_UART_PORT_NUM, ECHO_TEST_TXD, ECHO_TEST_RXD, ECHO_TEST_RTS, ECHO_TEST_CTS));
-
+    ESP_LOGI("UART", "Starting echo task...");
     // Configure a temporary buffer for the incoming data
     uint8_t *data = (uint8_t *) malloc(BUF_SIZE);
+    if (!data) {
+        ESP_LOGE("UART", "Failed to allocate memory!");
+    }
     while (1)
     {
+        ESP_LOGI("UART", "Waiting");
         // Read data from the UART
         int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, (BUF_SIZE - 1), portMAX_DELAY);
         if (len)
         {
+            ESP_LOGI("UART", "Received: '%s'", data);
             data[len] = '\0';
-            if (strncmp((char *)data, "START", 5) == 0) {
-                char msg[SONG_MSG_LEN] = {0};
-                strncpy(msg, "START", SONG_MSG_LEN - 1);  // Safe copy
-                xQueueSend(song_queue, &msg, portMAX_DELAY);
-                vTaskDelete(NULL);
+            char msg[SONG_MSG_LEN] = {0};
+            msg[0] = 'S';  // Store just the 'S' character
+            xQueueSend(song_queue, &msg, portMAX_DELAY);
+            ESP_LOGI("UART", "sent");
+            vTaskDelete(NULL);
             }
         }
     }
-}
+

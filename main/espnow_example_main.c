@@ -5,6 +5,8 @@
 #define ECHO_BYTE 1
 #define CONFIG_ESPNOW_CHANNEL 1
 
+#define ESPNOW_MAXDELAY 512
+
 static const char *TAG = "espnow_echo_receiver";
 QueueHandle_t recv_queue = NULL;
 QueueHandle_t song_queue = NULL;
@@ -30,13 +32,28 @@ static void example_wifi_init(void) {
 #endif
 }
 
-static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status) {
-    // Optionally log send status
+static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
+{
+    example_espnow_event_t evt;
+    example_espnow_event_send_cb_t *send_cb = &evt.info.send_cb;
+
+    if (mac_addr == NULL) {
+        ESP_LOGE(TAG, "Send cb arg error");
+        return;
+    }
+
+    evt.id = EXAMPLE_ESPNOW_SEND_CB;
+    memcpy(send_cb->mac_addr, mac_addr, ESP_NOW_ETH_ALEN);
+    send_cb->status = status;
+    if (xQueueSend(song_queue, &evt, ESPNOW_MAXDELAY) != pdTRUE) {
+        ESP_LOGW(TAG, "Send send queue fail");
+    }
 }
 
 static void example_espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
-    if (!recv_info || !data || len <= 0) return;
-
+    if (!recv_info || !data || len <= 0) { 
+        return;
+    }
     // Copy MAC address and data into a struct for the task
     example_espnow_event_t evt;
     example_espnow_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
@@ -75,9 +92,16 @@ static void espnow_send_task(void *pvParameter) {
     char song_choice[SONG_MSG_LEN];
 
     while (1) {
-        if (xQueueReceive(song_queue, &song_choice, portMAX_DELAY) == pdPASS) {
-            int len = strnlen(song_choice, SONG_MSG_LEN);
-            esp_now_send(send_param->dest_mac, (const uint8_t *)song_choice, len); // Send just one byte
+        if (xQueueReceive(song_queue, song_choice, portMAX_DELAY) == pdPASS) {
+            if (!esp_now_is_peer_exist(send_param->dest_mac)) {
+                ESP_LOGW("ESP-NOW", "Peer not found, skipping send");
+                continue;
+            }
+            
+            esp_err_t err = esp_now_send(send_param->dest_mac, (const uint8_t *)song_choice, 1);
+            if (err != ESP_OK) {
+                ESP_LOGE("ESP-NOW", "Send error: %s", esp_err_to_name(err));
+            }
         }
     }
 }
@@ -130,7 +154,11 @@ void app_main(void) {
     assert(recv_queue);
     
     xTaskCreate(receive_esp_inputs_task, "esp_inputs_to_labview", ECHO_TASK_STACK_SIZE, NULL, 3, NULL);
-    xTaskCreate(echo_task, "uart_echo_task", ECHO_TASK_STACK_SIZE, NULL, 6, NULL);
-    xTaskCreate(espnow_echo_task, "receive_outside_esp", 2048, NULL, 2, NULL);
+    xTaskCreate(echo_task, "uart_echo_task", 4096, NULL, 6, NULL);
+    // xTaskCreate(espnow_echo_task, "receive_outside_esp", 2048, NULL, 2, NULL);
+    BaseType_t res = xTaskCreate(echo_task, "echo_task", 4096, NULL, 10, NULL);
+    if (res != pdPASS) {
+        ESP_LOGE("MAIN", "Failed to create echo_task");
+}
     xTaskCreate(espnow_send_task, "send_song_outside", 2048, NULL, 5, NULL);
 }
