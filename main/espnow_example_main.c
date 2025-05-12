@@ -144,7 +144,7 @@ void app_main(void) {
     example_wifi_init();
     example_espnow_init();
 
-    song_queue = xQueueCreate(10, sizeof(char[16]));
+    song_queue = xQueueCreate(10, sizeof(char));
     assert(song_queue);
     
     uart_forward_queue = xQueueCreate(5, sizeof(uint8_t));
@@ -154,11 +154,12 @@ void app_main(void) {
     assert(recv_queue);
     
     xTaskCreate(receive_esp_inputs_task, "esp_inputs_to_labview", ECHO_TASK_STACK_SIZE, NULL, 3, NULL);
-    xTaskCreate(echo_task, "uart_echo_task", 4096, NULL, 6, NULL);
-    // xTaskCreate(espnow_echo_task, "receive_outside_esp", 2048, NULL, 2, NULL);
-    BaseType_t res = xTaskCreate(echo_task, "echo_task", 4096, NULL, 10, NULL);
+
+    xTaskCreate(espnow_echo_task, "receive_outside_esp", 2048, NULL, 2, NULL);
+    
+    BaseType_t res = xTaskCreate(echo_task, "echo_task", 4096, NULL, 4, NULL);
     if (res != pdPASS) {
         ESP_LOGE("MAIN", "Failed to create echo_task");
-}
+    }         
     xTaskCreate(espnow_send_task, "send_song_outside", 2048, NULL, 5, NULL);
 }

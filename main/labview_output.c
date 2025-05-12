@@ -87,7 +87,6 @@ void echo_task(void *arg)
             msg[0] = 'S';  // Store just the 'S' character
             xQueueSend(song_queue, &msg, portMAX_DELAY);
             ESP_LOGI("UART", "sent");
-            vTaskDelete(NULL);
             }
         }
     }
