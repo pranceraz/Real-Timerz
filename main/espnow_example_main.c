@@ -34,20 +34,22 @@ static void example_wifi_init(void) {
 
 static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
-    example_espnow_event_t evt;
-    example_espnow_event_send_cb_t *send_cb = &evt.info.send_cb;
+    // example_espnow_event_t evt;
+    // example_espnow_event_send_cb_t *send_cb = &evt.info.send_cb;
 
-    if (mac_addr == NULL) {
-        ESP_LOGE(TAG, "Send cb arg error");
-        return;
-    }
+    ESP_LOGI(TAG, "send sumn");
 
-    evt.id = EXAMPLE_ESPNOW_SEND_CB;
-    memcpy(send_cb->mac_addr, mac_addr, ESP_NOW_ETH_ALEN);
-    send_cb->status = status;
-    if (xQueueSend(song_queue, &evt, ESPNOW_MAXDELAY) != pdTRUE) {
-        ESP_LOGW(TAG, "Send send queue fail");
-    }
+    // if (mac_addr == NULL) {
+    //     ESP_LOGE(TAG, "Send cb arg error");
+    //     return;
+    // }
+
+    // evt.id = EXAMPLE_ESPNOW_SEND_CB;
+    // memcpy(send_cb->mac_addr, mac_addr, ESP_NOW_ETH_ALEN);
+    // send_cb->status = status;
+    // if (xQueueSend(song_queue, &evt, ESPNOW_MAXDELAY) != pdTRUE) {
+    //     ESP_LOGW(TAG, "Send send queue fail");
+    // }
 }
 
 static void example_espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
@@ -155,11 +157,9 @@ void app_main(void) {
     
     xTaskCreate(receive_esp_inputs_task, "esp_inputs_to_labview", ECHO_TASK_STACK_SIZE, NULL, 3, NULL);
 
-    xTaskCreate(espnow_echo_task, "receive_outside_esp", 2048, NULL, 2, NULL);
+    xTaskCreate(espnow_echo_task, "receive_outside_esp", 2048, NULL, 3, NULL);
     
-    BaseType_t res = xTaskCreate(echo_task, "echo_task", 4096, NULL, 4, NULL);
-    if (res != pdPASS) {
-        ESP_LOGE("MAIN", "Failed to create echo_task");
-    }         
-    xTaskCreate(espnow_send_task, "send_song_outside", 2048, NULL, 5, NULL);
+    xTaskCreate(echo_task, "echo_task", 4096, NULL, 3, NULL);
+          
+    xTaskCreate(espnow_send_task, "send_song_outside", 2048, NULL, 3, NULL);
 }
