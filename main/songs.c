@@ -4,14 +4,14 @@ song_t Songs[3];
 
 void initialize_song_data(void){
 
-    static uint16_t tequila_easy_beats[73];
+    static uint16_t tequila_easy_beats[74];
 
-    for(int i = 0; i < 73; i++){
+    for(int i = 0; i < 74; i++){
         tequila_easy_beats[i] = i; 
     }
     //Position 1-4 is from pointer to pinky
-    static const uint8_t tequila_beat_vals[73] = {
-        15, 15, 15, 15,
+    static const uint8_t tequila_beat_vals[74] = {
+        15, 15, 15, 15, 15,
         15, 15, 15, 15,
         15, 15, 15, 15,
         15, 15, 15, 15,
@@ -35,6 +35,6 @@ void initialize_song_data(void){
     Songs[0].beat_numbers = tequila_easy_beats;
     Songs[0].beat_values = tequila_beat_vals;
     Songs[0].bpm = 91;
-    Songs[0].beat_count = 73;
+    Songs[0].beat_count = 74;
 
 }

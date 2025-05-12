@@ -50,7 +50,7 @@ void pressure_sensor_task(void *pvParameter) {
         state |= (adc1_get_raw(FPS4_CHANNEL) > PRESSURE_THRESHOLD) << 0;
 
         // Only process if state has changed
-        if (state != prev_sensor_state && state != 0) {
+        if (state != prev_sensor_state ) {
             xQueueSend(input_q, &state, portMAX_DELAY);
             prev_sensor_state = state;
         }
