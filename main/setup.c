@@ -20,10 +20,10 @@ void setup_task(void *pvParameter) {
 
     ESP_LOGI(TAG_SETUP, "All tasks suspended.");
     
-    char command_buf[16];
+    uint8_t command_buf;
     if (xQueueReceive(system_control_queue, &command_buf, portMAX_DELAY)== pdPASS) {
-        
-        ESP_LOGI(TAG_SETUP, "Received command: %s", command_buf);    
+
+        ESP_LOGI(TAG_SETUP, "Received command: %d", command_buf);    
         //Once authorized, resume other tasks
         vTaskResume(espnow_handle);
         vTaskResume(pressure_sensor_handle);

@@ -61,11 +61,6 @@ static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_
 #define MAX_ESPNOW_MSG_SIZE 32
 
 static void example_espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
-    if (recv_info == NULL || data == NULL || len <= 0) {
-        ESP_LOGE(TAG_CB, "Received invalid data (recv_info: %p, data: %p, len: %d)", recv_info, data, len);
-        return;
-    }
-
     // Check if the received data is equal to 8
     if (len == 1 && data[0] == 8) {
         uint8_t received_value = data[0];

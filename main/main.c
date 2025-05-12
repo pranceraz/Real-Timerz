@@ -49,7 +49,7 @@ void app_main(void)
         
 
         //order MATTERS
-        xTaskCreate(espnow_send_task, "espnow_send_task", 2048, NULL, 5, &espnow_handle);
+        xTaskCreate(espnow_send_task, "espnow_send_task", 2048, NULL, 4, &espnow_handle);
 
         // Create the pressure sensor task
         xTaskCreate(
@@ -95,7 +95,7 @@ void app_main(void)
         setup_params.metronome_task_handle = metronome_handle;
         setup_params.pressure_sensor_task_handle = pressure_sensor_handle;
 
-        xTaskCreate(setup_task, "setup_task", 4096,(void*)&setup_params, 5,NULL);
+        xTaskCreate(setup_task, "setup_task", 4096,(void*)&setup_params, 2,NULL);
         // The scheduler will start automatically
     //    fps_queue = xQueueCreate(5, sizeof(uint8_t));
     //  assert(fps_queue);
