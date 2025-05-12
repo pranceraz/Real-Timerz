@@ -29,7 +29,7 @@
  * - Transmit (Tx) buffer: off
  * - Flow control: off
  * - Event queue: off
- * - Pin assignment: see defines below (See Kconfig)
+ * - Pin assignment: see defines below (See Kconfig)  
  */
 
 #define ECHO_TEST_TXD (CONFIG_EXAMPLE_UART_TXD)

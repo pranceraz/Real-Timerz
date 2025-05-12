@@ -3,8 +3,6 @@
 QueueHandle_t uart_forward_queue = NULL;
 
 
-uint8_t s_led_state = 0;
-
 // Define a TAG for this specific module or functionality
 // static const char *TAG_BINARY = "BINARY_STATE";
 
@@ -32,11 +30,6 @@ void receive_esp_inputs_task(void *arg){
     while (1){
         uint8_t state_val;
     if (xQueueReceive(uart_forward_queue, &state_val, 10 / portTICK_PERIOD_MS) == pdTRUE) {
-        // char binary_str[5];
-        // for (int i = 3; i >= 0; i--) {
-        //     binary_str[3 - i] = ((state_val >> i) & 1) ? '1' : '0';
-        // }
-        // binary_str[4] = '\0';
         if (state_val == 0){
             uart_write_bytes(ECHO_UART_PORT_NUM, "0\r\n", 3);
         }
@@ -71,23 +64,17 @@ void echo_task(void *arg)
     ESP_LOGI("UART", "Starting echo task...");
     // Configure a temporary buffer for the incoming data
     uint8_t *data = (uint8_t *) malloc(BUF_SIZE);
-    if (!data) {
-        ESP_LOGE("UART", "Failed to allocate memory!");
-    }
     while (1)
     {
-        ESP_LOGI("UART", "Waiting");
-        // Read data from the UART
-        int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, (BUF_SIZE - 1), portMAX_DELAY);
-        if (len)
-        {
-            ESP_LOGI("UART", "Received: '%s'", data);
-            data[len] = '\0';
-            char msg[SONG_MSG_LEN] = {0};
-            msg[0] = 'S';  // Store just the 'S' character
-            xQueueSend(song_queue, &msg, portMAX_DELAY);
-            ESP_LOGI("UART", "sent");
-            }
+            // Read data from the UART
+            int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, 1, 1000 / portTICK_PERIOD_MS);
+            uart_write_bytes(ECHO_UART_PORT_NUM, (const char *) data, len);
+            if (len > 0){
+                ESP_LOGI("UART", "praying");    
+                uint8_t msg = data[0];
+                xQueueSend(song_queue, &msg, portMAX_DELAY);
+            
         }
     }
+}
 

@@ -37,8 +37,6 @@ static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_
     // example_espnow_event_t evt;
     // example_espnow_event_send_cb_t *send_cb = &evt.info.send_cb;
 
-    ESP_LOGI(TAG, "send sumn");
-
     // if (mac_addr == NULL) {
     //     ESP_LOGE(TAG, "Send cb arg error");
     //     return;
@@ -49,7 +47,7 @@ static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_
     // send_cb->status = status;
     // if (xQueueSend(song_queue, &evt, ESPNOW_MAXDELAY) != pdTRUE) {
     //     ESP_LOGW(TAG, "Send send queue fail");
-    // }
+    
 }
 
 static void example_espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
@@ -79,9 +77,9 @@ static void espnow_echo_task(void *pvParameter) {
                 state = recv_cb->data[0];
                 xQueueSend(uart_forward_queue, &state, 0);
                 // Optionally log data
-                for (int i = 0; i < recv_cb->data_len; i++) { 
-                //ESP_LOGI(TAG, "Byte %d: %02X", i, recv_cb->data[i]);
-                }
+                // for (int i = 0; i < recv_cb->data_len; i++) { 
+                // //ESP_LOGI(TAG, "Byte %d: %02X", i, recv_cb->data[i]);
+                // }
                 // Send back an "echo" (single byte = 1) to sender
                 free(recv_cb->data);
             }
@@ -91,22 +89,16 @@ static void espnow_echo_task(void *pvParameter) {
 
 // --- TASK 2: ESP-NOW Sending Task ---
 static void espnow_send_task(void *pvParameter) {
-    char song_choice[SONG_MSG_LEN];
+    uint8_t notify;
 
     while (1) {
-        if (xQueueReceive(song_queue, song_choice, portMAX_DELAY) == pdPASS) {
-            if (!esp_now_is_peer_exist(send_param->dest_mac)) {
-                ESP_LOGW("ESP-NOW", "Peer not found, skipping send");
-                continue;
-            }
-            
-            esp_err_t err = esp_now_send(send_param->dest_mac, (const uint8_t *)song_choice, 1);
-            if (err != ESP_OK) {
-                ESP_LOGE("ESP-NOW", "Send error: %s", esp_err_to_name(err));
+        if (xQueueReceive(song_queue, &notify, portMAX_DELAY) == pdPASS) {
+            notify = 7;
+            esp_now_send(send_param->dest_mac, &notify, sizeof(notify));
+
             }
         }
     }
-}
 
 static esp_err_t example_espnow_init(void) {
     ESP_ERROR_CHECK(esp_now_init());
@@ -147,19 +139,15 @@ void app_main(void) {
     example_espnow_init();
 
     song_queue = xQueueCreate(10, sizeof(char));
-    assert(song_queue);
     
     uart_forward_queue = xQueueCreate(5, sizeof(uint8_t));
-    assert(uart_forward_queue);
 
     recv_queue = xQueueCreate(ESPNOW_QUEUE_SIZE, sizeof(example_espnow_event_t));
-    assert(recv_queue);
     
     xTaskCreate(receive_esp_inputs_task, "esp_inputs_to_labview", ECHO_TASK_STACK_SIZE, NULL, 3, NULL);
 
     xTaskCreate(espnow_echo_task, "receive_outside_esp", 2048, NULL, 3, NULL);
     
     xTaskCreate(echo_task, "echo_task", 4096, NULL, 3, NULL);
-          
     xTaskCreate(espnow_send_task, "send_song_outside", 2048, NULL, 3, NULL);
 }
