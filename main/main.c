@@ -12,10 +12,15 @@ void Sys_init(void){
     example_espnow_init();
     initialize_song_data();
     current_song = Songs[0];
+    recv_queue = xQueueCreate(ESPNOW_QUEUE_SIZE, sizeof(example_espnow_event_t));
+    system_control_queue = xQueueCreate(5, sizeof(uint8_t));
+    assert(system_control_queue);
+    assert(recv_queue);
 }
 
 void app_main(void)
 {       
+        
         Sys_init();
             // --- Basic System Information ---
         esp_chip_info_t chip_info;
