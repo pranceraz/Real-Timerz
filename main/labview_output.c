@@ -82,13 +82,9 @@ void echo_task(void *arg)
             data[len] = '\0';
             switch(data[0])
             {
-                case 'A':
-                    s_led_state = 1;
-                    xQueueSend(song_queue, &s_led_state, 0);
-                    break;
-                case 'B':
-                    s_led_state = 2;
-                    xQueueSend(song_queue, &s_led_state, 0);
+                case 'T':
+                    uint8_t msg = data[0];
+                    xQueueSend(song_queue, &msg, 0);
                     break;
             }
         }

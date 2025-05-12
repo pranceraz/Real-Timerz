@@ -72,11 +72,12 @@ static void espnow_echo_task(void *pvParameter) {
 
 // --- TASK 2: ESP-NOW Sending Task ---
 static void espnow_send_task(void *pvParameter) {
-    uint8_t song_choice;
+    uint8_t notify;
 
     while (1) {
-        if (xQueueReceive(song_queue, &song_choice, portMAX_DELAY) == pdPASS) {
-            esp_now_send(send_param->dest_mac, &song_choice, 1); // Send just one byte
+        if (xQueueReceive(song_queue, &notify, portMAX_DELAY) == pdPASS) {
+            notify = 8;
+            esp_now_send(send_param->dest_mac, &notify, 1); // Send just one byte
         }
     }
 }
