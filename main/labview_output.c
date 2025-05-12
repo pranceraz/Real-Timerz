@@ -67,13 +67,13 @@ void echo_task(void *arg)
     while (1)
     {
             // Read data from the UART
-            int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, 1, 1000 / portTICK_PERIOD_MS);
+            int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, (BUF_SIZE - 1) , 20 / portTICK_PERIOD_MS);
             uart_write_bytes(ECHO_UART_PORT_NUM, (const char *) data, len);
             if (len > 0){
                 ESP_LOGI("UART", "praying");    
                 uint8_t msg = data[0];
                 xQueueSend(song_queue, &msg, portMAX_DELAY);
-            
+                
         }
     }
 }
