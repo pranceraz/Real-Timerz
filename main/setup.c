@@ -34,7 +34,7 @@ void setup_task(void *pvParameter) {
     }
 
 
-    vTaskDelete(NULL); // Delete this task as it's no longer needed
+    vTaskDelete(NULL); 
 }
 
 

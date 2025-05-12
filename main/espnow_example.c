@@ -56,55 +56,6 @@ static void example_espnow_send_cb(const uint8_t *mac_addr, esp_now_send_status_
     // Optionally log send status
 }
 
-// #define TAG_RECEIVER_TASK "ESPNOW_reciver"
-// #define TAG_CB "ESPNOW_RECV_CB"
-// #define MAX_ESPNOW_MSG_SIZE 32
-
-// static void example_espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len) {
-//     // Check if the received data is equal to 8
-//     if (len == 1 && data[0] == 8) {
-//         uint8_t received_value = data[0];
-//         if (recv_queue != NULL) {
-//             if (xQueueSend(recv_queue, &received_value, pdMS_TO_TICKS(0)) != pdPASS) {
-//                 ESP_LOGW(TAG_CB, "Failed to send value 8 to recv_queue. Queue full?");
-//             } else {
-//                 ESP_LOGI(TAG_CB, "Sent value 8 to recv_queue");
-//             }
-//         } else {
-//             ESP_LOGE(TAG_CB, "recv_queue is NULL! Cannot send message.");
-//         }
-//     } else {
-//         ESP_LOGI(TAG_CB, "Received data is not 8, ignoring.");
-//     }
-// }
-
-// QueueHandle_t system_control_queue = NULL;
-// QueueHandle_t recv_queue = NULL;
-
-// void espnow_receive_task(void *pvParameter) {
-//     uint8_t received_value;
-//     ESP_LOGI(TAG_RECEIVER_TASK, "ESP-NOW Receive Processing Task started. Waiting for messages...");
-//     while (1) {
-//         if (xQueueReceive(recv_queue, &received_value, portMAX_DELAY) == pdPASS) {
-//             ESP_LOGI(TAG_RECEIVER_TASK, "Received value: '%d'", received_value);
-
-//             if (received_value == 8) {
-//                 ESP_LOGI(TAG_RECEIVER_TASK, "Received value is 8, sending to system_control_queue");
-//                 if (system_control_queue != NULL) {
-//                     if (xQueueSend(system_control_queue, &received_value, pdMS_TO_TICKS(10)) == pdPASS) {
-//                         ESP_LOGI(TAG_RECEIVER_TASK, "Forwarded value 8 to system_control_queue");
-//                     } else {
-//                         ESP_LOGW(TAG_RECEIVER_TASK, "Failed to forward value 8 to system_control_queue (full or timeout)");
-//                     }
-//                 } else {
-//                     ESP_LOGE(TAG_RECEIVER_TASK, "system_control_queue is not initialized.");
-//                 }
-//             } else {
-//                 ESP_LOGI(TAG_RECEIVER_TASK, "Received value is not 8, ignoring.");
-//             }
-//         }
-//     }
-// }
 
 static const char *REC_TAG = "espnow_echo_receiver";
 QueueHandle_t recv_queue = NULL;
@@ -160,14 +111,7 @@ static void espnow_send_task(void *pvParameter) {
         //notificationValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         
         printf("Receiver: Waiting for metronome...\n");
-        // notificationValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        
 
-        // if (notificationValue > 0) { 
-        //     //log_sensor_state(sensor_state);
-        //     esp_now_send(send_param->dest_mac, &is_correct, 1); // Send just one byte
-        //     is_correct = 0;
-        // }
         if (xTaskNotifyWait(0x00,          /* Don't clear any bits on entry. */
                              ULONG_MAX,     /* Clear all bits on exit (effectively consuming the notification). */
                              &notification_value_received, /* Stores the notification value. */

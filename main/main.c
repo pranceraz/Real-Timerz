@@ -39,20 +39,7 @@ void app_main(void)
                 (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
         ESP_LOGI(TAG_MAIN, "Minimum free heap size: %" PRIu32 " bytes\n", esp_get_minimum_free_heap_size());
-
-
-
-
-
-        // Initialize hardware
-        //configure_hardware();
-        //ESP_ERROR_CHECK(nvs_flash_init());
-        //example_wifi_init();
-       // example_espnow_init();
         
-               
-        
-
         //order MATTERS
         xTaskCreate(espnow_send_task, "espnow_send_task", 2048, NULL, 4, &espnow_handle);
 
@@ -101,10 +88,6 @@ void app_main(void)
         setup_params.pressure_sensor_task_handle = pressure_sensor_handle;
 
         xTaskCreate(setup_task, "setup_task", 4096,(void*)&setup_params, 2,NULL);
-        // The scheduler will start automatically
-    //    fps_queue = xQueueCreate(5, sizeof(uint8_t));
-    //  assert(fps_queue);
-       
 
         
 }

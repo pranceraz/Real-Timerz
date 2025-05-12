@@ -12,7 +12,7 @@
 
 //#include “semphr.h”
 
-#define METRONOME_BPM 120           // Beats per minute
+#define METRONOME_BPM 120           // Beats per minute, fake bs
 
 static const char *TAG_METRONOME = "metronome";
 extern uint8_t expected_beat_val;
