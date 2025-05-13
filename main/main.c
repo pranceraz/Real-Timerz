@@ -41,7 +41,7 @@ void app_main(void)
         ESP_LOGI(TAG_MAIN, "Minimum free heap size: %" PRIu32 " bytes\n", esp_get_minimum_free_heap_size());
         
         //order MATTERS
-        xTaskCreate(espnow_send_task, "espnow_send_task", 2048, NULL, 4, &espnow_handle);
+        xTaskCreate(espnow_send_task, "espnow_send_task", 2048, NULL, 3, &espnow_handle);
 
         // Create the pressure sensor task
         xTaskCreate(
@@ -49,7 +49,7 @@ void app_main(void)
             "pressure_sensor_task",  // Text name for the task
             2048,                    // Stack size in words
             NULL,                    // Parameter passed into the task
-            5,                       // Priority at which the task is created
+            4,                       // Priority at which the task is created
             &pressure_sensor_handle  // Task handle
         );
         
@@ -76,7 +76,7 @@ void app_main(void)
             "input_checker_task",
             2048,
             (void*)&Checker_params,
-            6,
+            3,
             &input_checker_handle
         );
 

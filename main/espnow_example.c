@@ -122,6 +122,12 @@ static void espnow_send_task(void *pvParameter) {
                              }
         
         esp_now_send(send_param->dest_mac, &value_to_send_over_espnow, sizeof(value_to_send_over_espnow));
+        
+
+
+
+
+
     }
 }
 
